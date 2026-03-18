@@ -15,6 +15,9 @@ urlpatterns = [
     path('admin/genere', manageGenere, name="admin_manage_genere"),
     path('admin/author', manageAuthor, name="admin_manage_author"),
     path('admin/book', manageBooks, name="admin_manage_book"),
+    path('admin/book/insert', insertBook, name="admin_insert_book"),
+    
+    
     
 
     #homepage

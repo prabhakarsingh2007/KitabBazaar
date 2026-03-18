@@ -1,12 +1,16 @@
 {% extends "admin/admin_base.html" %}
 
+
 {% block content %}
 
 <div class="flex flex-1 gap-5 p-5">
 
     <!-- Manage Books Section -->
     <div class="flex w-full flex-col">
-        <h2 class="space-y-3 font-semibold text-2xl">Manage Books ({{books|length}})</h2>
+        <div class="flex flex-1 justify-between">
+            <h2 class="space-y-3 font-semibold text-2xl">Manage Books ({{books|length}})</h2>
+            <a href="{% url 'admin_insert_book' %}" class="bg-teal-600 text-white px-3 py-2 rounded">Add Book</a>
+        </div>
         <table class="w-full border mt-5">
             <thead>
                 <tr>

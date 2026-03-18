@@ -11,3 +11,9 @@ class GenereFrom(ModelForm):
     class Meta:
         model = Genere
         exclude = ["slug"]
+
+
+class Bookform(ModelForm):
+    class Meta:
+        model = Book
+        exclude = ['slug']
