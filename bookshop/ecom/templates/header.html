@@ -1,0 +1,45 @@
+<!-- Header -->
+<div class="bg-white shadow-md px-6 py-4 flex items-center justify-between">
+
+    <!-- Logo -->
+    <h2 class="text-2xl font-bold text-blue-600">
+        Bookshop
+    </h2>
+
+    <!-- Search -->
+    <form action="" method="get" class="flex items-center gap-2">
+        <input 
+            type="text" 
+            name="search" 
+            placeholder="Search by title, author, ISBN..."
+            class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+        <button 
+            type="submit" 
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+            Search
+        </button>
+    </form>
+
+    <!-- Menu -->
+    <ul class="flex items-center gap-6 font-medium text-gray-700">
+        <li><a href="#" class="hover:text-blue-600">Home</a></li>
+        <li><a href="#" class="hover:text-blue-600">Login</a></li>
+        <li><a href="#" class="hover:text-blue-600">Cart</a></li>
+    </ul>
+
+</div>
+
+<!-- Genres -->
+<div class="flex gap-4 px-6  bg-slate-100 overflow-x-auto ">
+
+    {% for genre in genres %}
+        <a href="#" class="text-slate-800 py-2 border-r px-3 border-slate-300 hover:text-slate-200 font-medium">
+            {{ genre.tittle }}
+        </a>
+    {% empty %}
+        <p class="text-gray-500">No genres available</p>
+    {% endfor %}
+
+</div>

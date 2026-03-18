@@ -1,0 +1,44 @@
+{% extends "admin/admin_base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+
+<div class="flex flex-1">
+
+
+    <div class="flex w-9/12 flex-col  p-5">
+        <h2 class="space-y-3 font-semibold text-2xl">Manage Author({{ authors|length }})</h2>
+        <table class=" w-full border mt-5">
+            <thead>
+                <tr>
+                    <th class="border">ID</th>
+                    <th class="border">Name</th>
+                    <th class="border">No of page</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for author in authors %}
+
+                <tr>
+                    <td class="border p-3">{{author.id}}</td>
+                    <td class="border p-3">{{author.name}}</td>
+                    <td class="border p-3">{{author.authors.count}}</td>
+
+                </tr>
+                 {% endfor %} 
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex w-3/12 flex-col ">
+        <h2 class="space-y-3 font-semibold text-2xl">Insert Author</h2>
+        <form action="" method="post">
+             {% csrf_token %} 
+             {{form|crispy}}
+             <button type="submit" class="bg-red-700 text-white px-3 py-2 rounded mt-5">Add Author</button>
+        </form>
+    </div>
+
+</div>
+
+
+{% endblock content %}

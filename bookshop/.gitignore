@@ -1,0 +1,6 @@
+server/
+
+db.sqlite3
+
+__pycache__
+

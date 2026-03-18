@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+ {# banner #}
+
+ {# products #}
+
+ <div class="w-full ">
+    <div class="border-b border-slate-200 px-5 py-2">
+         <h2 class="text-2xl font-normal text-slate-700">Recently Added</h2>
+
+    </div>
+    
+
+    <div class="grid grid-cols-6 ">
+        <!-- Product cards -->
+         {% for book in books %}
+            <div class="bg-slate-100 border-l border-slate-300 m-4">
+                <img src="{{ book.cover_image.url }}"  class="w-full ">
+                <div class="p-4">
+                    <h3 class="text-lg font-semibold text-gray-800">{{ book.title }}</h3>
+                    <p class="text-gray-600">{{ book.author }}</p>
+                    <p class="text-gray-800 font-bold mt-2">₹ {{ book.price }}</p>
+                </div>
+            </div>
+         {% endfor %}
+
+    </div>
+
+ </div>
+    
+{% endblock %}  

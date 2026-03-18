@@ -1,0 +1,45 @@
+{% extends "admin/admin_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="flex flex-1 w-full">
+
+    <div class="flex w-9/12 flex-col p-5">
+        <h2 class="space-y-3 font-semibold text-2xl">Manage Generes({{generes|length}})</h2>
+
+        <table class="w-full border mt-5">
+            <thead>
+                <tr>
+                    <th class="border p-3">ID</th>
+                    <th class="border p-3">Name</th>
+                    <th class="border p-3">Description</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for genere in generes %}
+                <tr>
+                    <td class="border p-3">{{genere.id}}</td>
+                    <td class="border p-3">{{genere.tittle}}</td>
+                    <td class="border p-3">{{genere.description}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+        
+    <div class="flex w-3/12">
+        <h2 class="space-y-3 font-semibold text-2xl">Insert Genere</h2>
+        <form action="" method="post">
+             {% csrf_token %} 
+             {{form|crispy}}
+             <button type="submit" class="bg-red-700 text-white px-3 py-2 rounded mt-5">Add Genere</button>
+        </form>
+    </div>
+
+</div>
+
+{% endblock content %}

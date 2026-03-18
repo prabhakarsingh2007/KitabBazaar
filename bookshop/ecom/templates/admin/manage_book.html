@@ -1,0 +1,49 @@
+{% extends "admin/admin_base.html" %}
+
+{% block content %}
+
+<div class="flex flex-1 gap-5 p-5">
+
+    <!-- Manage Books Section -->
+    <div class="flex w-full flex-col">
+        <h2 class="space-y-3 font-semibold text-2xl">Manage Books ({{books|length}})</h2>
+        <table class="w-full border mt-5">
+            <thead>
+                <tr>
+                    <th class="border p-2">ID</th>
+                    <th class="border p-2">Title</th>
+                    <th class="border p-2">NOP</th>
+                    <th class="border p-2">Price</th>
+                    <th class="border p-2">Image</th>
+                    <th class="border p-2">ISBN</th>
+                    <th class="border p-2">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                <tr>
+                    <td class="border p-3">{{ book.id }}</td>
+                    <td class="border p-3">{{ book.tittle }}</td>
+                    <td class="border p-3">{{ book.no_of_pages }}</td>
+                    <td class="border p-3">{{ book.price }}</td>
+                    <td class="border p-3">
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-20">
+                    </td>
+                    <td class="border p-3">{{ book.isbn }}</td>
+                    <td class="border p-3 ">
+                        <a href="#" class="px-2 py-1 bg-blue-600 text-white rounded">Edit</a>
+                        <a href="#" class="px-2 py-1 bg-red-600 text-white rounded">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+
+        </form>
+    </div>
+
+</div>
+
+{% endblock content %}
