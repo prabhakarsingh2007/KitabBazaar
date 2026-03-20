@@ -35,7 +35,7 @@ class Book(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     genere = models.ForeignKey(Genere, on_delete=models.CASCADE, related_name='categories')
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='authors')
-    cover_image = models.ImageField(upload_to='book_covers/', null=True, blank=True)
+    cover_image = models.ImageField(upload_to='book_covers/')
     edition = models.CharField(default='latest edition')
     isbn = models.CharField(max_length=20)
 

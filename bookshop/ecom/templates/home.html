@@ -1,32 +1,55 @@
 {% extends 'base.html' %}
 
 {% block content %}
- {# banner #}
 
- {# products #}
-
- <div class="w-full ">
-    <div class="border-b border-slate-200 px-5 py-2">
-         <h2 class="text-2xl font-normal text-slate-700">Recently Added</h2>
-
-    </div>
+<div class="w-full">
     
+    <!-- Section Header -->
+    <div class="border-b border-slate-200 px-6 py-3">
+        <h2 class="text-2xl font-semibold text-slate-700">Recently Added</h2>
+    </div>
 
-    <div class="grid grid-cols-6 ">
-        <!-- Product cards -->
-         {% for book in books %}
-            <div class="bg-slate-100 border-l border-slate-300 m-4">
-                <img src="{{ book.cover_image.url }}"  class="w-full ">
-                <div class="p-4">
-                    <h3 class="text-lg font-semibold text-gray-800">{{ book.title }}</h3>
-                    <p class="text-gray-600">{{ book.author }}</p>
-                    <p class="text-gray-800 font-bold mt-2">₹ {{ book.price }}</p>
+    <!-- Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4">
+        
+        {% for book in books %}
+        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition">
+            
+            <!-- Image -->
+            <img src="{{ book.cover_image.url }}" class="w-full h-80 object-contain">
+
+            <!-- Content -->
+            <div class="p-3">
+                <h3 class="text-md font-semibold text-gray-800 line-clamp-1">
+                    {{ book.tittle }}
+                </h3>
+                <p class="text-md text-gray-500 mb-2">
+                    {{ book.author }}
+                </p>
+
+                <!-- Price + Action -->
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-bold text-gray-800">
+                            ₹ {{ book.discount_price }}
+                        </p>
+                        <p class="text-xs text-gray-400 line-through">
+                            ₹ {{ book.price }}
+                        </p>
+                    </div>
+
+                    <a href="{% url 'book_view' book.slug %}" 
+                       class="text-xs text-blue-600 hover:underline">
+                        View
+                    </a>
                 </div>
             </div>
-         {% endfor %}
+
+        </div>
+        {% endfor %}
 
     </div>
 
- </div>
-    
-{% endblock %}  
+</div>
+
+{% endblock %}

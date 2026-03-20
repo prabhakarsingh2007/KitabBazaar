@@ -1,5 +1,4 @@
 from turtle import save
-
 from django.shortcuts import render, redirect
 from ecom.models import *
 from ecom.forms import *

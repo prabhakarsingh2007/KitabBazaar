@@ -2,17 +2,17 @@
 <div class="bg-white shadow-md px-6 py-4 flex items-center justify-between">
 
     <!-- Logo -->
-    <h2 class="text-2xl font-bold text-blue-600">
+    <a href="{% url 'home' %}" class="text-2xl font-bold text-blue-600">
         Bookshop
-    </h2>
+    </a>
 
     <!-- Search -->
-    <form action="{% url "filter" %}" method="get" class="flex items-center gap-2">
+    <form action="{% url "filter" %}" method="get" class="flex items-center gap-2 w-[700px]">
         <input 
             type="text" 
             name="search" 
             placeholder="Search by title, author, ISBN..."
-            class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
         >
         <button 
             type="submit" 
@@ -33,13 +33,12 @@
 
 <!-- Genres -->
 <div class="flex gap-4 px-6  bg-slate-100 overflow-x-auto ">
+      <a href="{% url 'home'  %}" class="text-slate-600 py-2 border-r px-3 border-slate-300 hover:text-black font-medium">All Books</a>
 
     {% for genre in genres %}
-        <a href="{% url 'category_filter' genre.slug %}" class="text-slate-800 py-2 border-r px-3 border-slate-300 hover:text-slate-200 font-medium">
+        <a href="{% url 'category_filter' genre.slug %}" class="text-slate-600 py-2 border-r px-3 border-slate-300 hover:text-black font-medium">
             {{ genre.tittle }}
         </a>
-    {% empty %}
-        <p class="text-gray-500">No genres available</p>
     {% endfor %}
 
 </div>
