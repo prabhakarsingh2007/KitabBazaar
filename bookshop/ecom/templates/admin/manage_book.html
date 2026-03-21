@@ -31,7 +31,7 @@
                     <td class="border p-3">{{ book.no_of_pages }}</td>
                     <td class="border p-3">{{ book.price }}</td>
                     <td class="border p-3">
-                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-20">
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-10">
                     </td>
                     <td class="border p-3">{{ book.isbn }}</td>
                     <td class="border p-3 ">
@@ -42,11 +42,40 @@
                 {% endfor %}
             </tbody>
         </table>
+        {# summary of pages. total books 40 (showing 1 of 5) page no 1 #}
+        {# pagination button #}
+        <div class="flex items items-center mt-5 text-sm text-slate-500 gap-2">
+            <p>Total Books: {{ books.paination.count}}</p>
+            <p>Showing  {{books.start_index}}  to  {{books.end_index}}</p>
+            <p>Page No:  {{books.number}}</p>
+
+
+
+        </div>
+
+        <div class="mt-5 flex items-center gap-3 justify-between">
+            {% if books.has_previous %}
+            <span class="px-3 py-1 border bg-gray-300 "><a
+                    href="?page={{ books.previous_page_number }}">Previous</a></span>
+            {% else %}
+                        <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Previous</a></span>
+
+            {% endif %}
+            
+            {% if books.has_next %}
+            <span class="px-3 py-1 border bg-green-300 "><a href="?page={{ books.next_page_number }}">Next</a></span>
+            {% else %}
+                        <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Next</a></span>
+
+            {% endif %}
+
+
+        </div>
     </div>
 
 
-        </form>
-    </div>
+    </form>
+</div>
 
 </div>
 

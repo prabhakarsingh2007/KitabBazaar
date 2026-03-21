@@ -2,6 +2,7 @@ from turtle import save
 from django.shortcuts import render, redirect
 from ecom.models import *
 from ecom.forms import *
+from django.core.paginator import Paginator
 
 
 
@@ -40,7 +41,12 @@ def insertBook(req):
 
 def manageBooks(req):
     data = {}
-    data['books'] = Book.objects.all()
+    books = Book.objects.all()
+    # paginator work
+    paginator = Paginator(books,5)
+    page_number = req.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    data['books'] = page_obj
     
     return render(req,"admin/manage_book.html",data)
 
