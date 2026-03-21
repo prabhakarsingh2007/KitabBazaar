@@ -28,6 +28,35 @@
             </tbody>
 
         </table>
+           {# summary of pages. total generes 40 (showing 1 of 5) page no 1 #}
+        {# pagination button #}
+        <div class="flex items items-center mt-5 text-sm text-slate-500 gap-2">
+            <p>Total Generes: {{ generes.paination.count}}</p>
+            <p>Showing {{generes.start_index}} to {{generes.end_index}}</p>
+            <p>Page No: {{generes.number}}</p>
+
+
+
+        </div>
+
+        <div class="mt-5 flex items-center gap-3 justify-between">
+            {% if generes.has_previous %}
+            <span class="px-3 py-1 border bg-gray-300 "><a
+                    href="?page={{ generes.previous_page_number }}">Previous</a></span>
+            {% else %}
+            <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Previous</a></span>
+
+            {% endif %}
+
+            {% if generes.has_next %}
+            <span class="px-3 py-1 border bg-green-300 "><a href="?page={{ generes.next_page_number }}">Next</a></span>
+            {% else %}
+            <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Next</a></span>
+
+            {% endif %}
+
+
+        </div>
     </div>
 
         

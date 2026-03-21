@@ -14,7 +14,13 @@ def dashboard(request):
 def manageGenere(req):
     data = {}
     form = GenereFrom(req.POST or None)
-    data['generes'] = Genere.objects.all()
+    generes = Genere.objects.all()
+     # paginator work
+    paginator = Paginator(generes,5)
+    page_number = req.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    data['generes'] = page_obj
     data["form"] = form
     if req.method == "POST":
         if form.is_valid():
@@ -51,10 +57,17 @@ def manageBooks(req):
     return render(req,"admin/manage_book.html",data)
 
 def manageAuthor(req):
-    form = AuthorFrom(req.POST or None)
     data = {}
-    data['authors'] = Author.objects.all()
+    form = AuthorFrom(req.POST or None)
+    authors = Author.objects.all()
+
+    #paginator work
+    paginator = Paginator(authors, 10)
+    page_number = req.GET.get("page")
+    author_obj = paginator.get_page(page_number)
+    data['authors'] = author_obj
     data["form"] = form
+
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)

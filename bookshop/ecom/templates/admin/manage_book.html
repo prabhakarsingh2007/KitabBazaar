@@ -46,8 +46,8 @@
         {# pagination button #}
         <div class="flex items items-center mt-5 text-sm text-slate-500 gap-2">
             <p>Total Books: {{ books.paination.count}}</p>
-            <p>Showing  {{books.start_index}}  to  {{books.end_index}}</p>
-            <p>Page No:  {{books.number}}</p>
+            <p>Showing {{books.start_index}} to {{books.end_index}}</p>
+            <p>Page No: {{books.number}}</p>
 
 
 
@@ -58,14 +58,14 @@
             <span class="px-3 py-1 border bg-gray-300 "><a
                     href="?page={{ books.previous_page_number }}">Previous</a></span>
             {% else %}
-                        <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Previous</a></span>
+            <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Previous</a></span>
 
             {% endif %}
-            
+
             {% if books.has_next %}
             <span class="px-3 py-1 border bg-green-300 "><a href="?page={{ books.next_page_number }}">Next</a></span>
             {% else %}
-                        <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Next</a></span>
+            <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Next</a></span>
 
             {% endif %}
 

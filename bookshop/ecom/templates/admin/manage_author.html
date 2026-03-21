@@ -24,17 +24,46 @@
                     <td class="border p-3">{{author.authors.count}}</td>
 
                 </tr>
-                 {% endfor %} 
+                {% endfor %}
             </tbody>
         </table>
+        {# summary of pages. total author 40 (showing 1 of 5) page no 1 #}
+        {# pagination button #}
+        <div class="flex items items-center mt-5 text-sm text-slate-500 gap-2">
+            <p>Total Authors: {{ authors.paination.count}}</p>
+            <p>Showing {{authors.start_index}} to {{authors.end_index}}</p>
+            <p>Page No: {{authors.number}}</p>
+
+
+
+        </div>
+
+        <div class="mt-5 flex items-center gap-3 justify-between">
+            {% if authors.has_previous %}
+            <span class="px-3 py-1 border bg-gray-300 "><a
+                    href="?page={{ authors.previous_page_number }}">Previous</a></span>
+            {% else %}
+            <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Previous</a></span>
+
+            {% endif %}
+
+            {% if authors.has_next %}
+            <span class="px-3 py-1 border bg-green-300 "><a href="?page={{ authors.next_page_number }}">Next</a></span>
+            {% else %}
+            <span class="px-3 py-1 border bg-gray-300  text-gray-500 cursor-not-allowed">Next</a></span>
+
+            {% endif %}
+
+
+        </div>
     </div>
 
     <div class="flex w-3/12 flex-col ">
         <h2 class="space-y-3 font-semibold text-2xl">Insert Author</h2>
         <form action="" method="post">
-             {% csrf_token %} 
-             {{form|crispy}}
-             <button type="submit" class="bg-red-700 text-white px-3 py-2 rounded mt-5">Add Author</button>
+            {% csrf_token %}
+            {{form|crispy}}
+            <button type="submit" class="bg-red-700 text-white px-3 py-2 rounded mt-5">Add Author</button>
         </form>
     </div>
 
