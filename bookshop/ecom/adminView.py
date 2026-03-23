@@ -3,14 +3,15 @@ from django.shortcuts import render, redirect
 from ecom.models import *
 from ecom.forms import *
 from django.core.paginator import Paginator
+from django.contrib.admin.views.decorators import staff_member_required
 
 
-
-
+@staff_member_required(login_url="login")
 def dashboard(request):
     return render(request, 'admin/dashboard.html')    
 
 
+@staff_member_required(login_url="login")
 def manageGenere(req):
     data = {}
     form = GenereFrom(req.POST or None)
@@ -29,7 +30,8 @@ def manageGenere(req):
             data.save()
             return redirect("admin_manage_genere")
     return render(req, "admin/manage_genere.html",data)  
-  
+
+@staff_member_required(login_url="login")
 def insertBook(req):
     data = {}
     form = Bookform(req.POST or None, req.FILES or None)
@@ -44,7 +46,7 @@ def insertBook(req):
 
     return render(req, "admin/insert_book.html", data)
 
-
+@staff_member_required(login_url="login")
 def manageBooks(req):
     data = {}
     books = Book.objects.all()
@@ -56,6 +58,7 @@ def manageBooks(req):
     
     return render(req,"admin/manage_book.html",data)
 
+@staff_member_required(login_url="login")
 def manageAuthor(req):
     data = {}
     form = AuthorFrom(req.POST or None)
