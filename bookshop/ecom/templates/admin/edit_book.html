@@ -1,0 +1,23 @@
+{% extends "admin/admin_base.html" %} 
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="flex flex-1">
+    <div class="flex w-full flex-col">
+        <h2 class="space-y-3 font-semibold text-2xl">Edit Book</h2>
+        
+        <form action="" method="post" enctype="multipart/form-data">
+           {% csrf_token %} 
+           
+           {{ form|crispy }}
+
+           <button type="submit" class="bg-purple-700 text-white px-3 py-2 rounded mt-5">
+               Update Book
+           </button>
+        </form>
+
+    </div>
+</div>
+
+{% endblock content %}

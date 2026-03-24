@@ -12,7 +12,10 @@
                 <tr>
                     <th class="border">ID</th>
                     <th class="border">Name</th>
+                    <th class="border">Email</th>
+                    <th class="border">Contact</th>
                     <th class="border">No of page</th>
+                    <th class="border">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -21,7 +24,13 @@
                 <tr>
                     <td class="border p-3">{{author.id}}</td>
                     <td class="border p-3">{{author.name}}</td>
+                    <td class="border p-3">{{author.email}}</td>
+                    <td class="border p-3">{{author.contact}}</td>
+                    
                     <td class="border p-3">{{author.authors.count}}</td>
+                    <td class="border p-3">
+                        <a href="{% url 'admin_edit_author' author.id %}" class="bg-blue-500 text-white px-3 py-1 rounded">Edit</a>
+                    </td>
 
                 </tr>
                 {% endfor %}

@@ -59,6 +59,43 @@ def manageBooks(req):
     return render(req,"admin/manage_book.html",data)
 
 @staff_member_required(login_url="login")
+def editBook(req, id):
+    book = Book.objects.get(id=id)
+    form = Bookform(req.POST or None, req.FILES or None, instance=book)
+    if req.method == "POST":
+        if form.is_valid():
+            data = form.save(commit=False)
+            data.slug = data.tittle.lower().replace(" ", "-")
+            data.save()
+            return redirect("admin_manage_book")
+    return render(req,'admin/edit_book.html',{"form":form})
+
+@staff_member_required(login_url="login")
+def editGenere(req, id):
+    genere = Genere.objects.get(id=id)
+    form = GenereFrom(req.POST or None, instance=genere)
+    if req.method == "POST":
+        if form.is_valid():
+            data = form.save(commit=False)
+            data.slug = data.tittle.lower().replace(" ","-")
+            data.save()
+            return redirect("admin_manage_genere")
+    return render(req,'admin/edit_genere.html',{"form":form})
+
+@staff_member_required(login_url="login")
+def editAuthor(req, id):
+    author = Author.objects.get(id=id)
+    form = AuthorFrom(req.POST or None, instance=author)
+    if req.method == "POST":
+        if form.is_valid():
+            data = form.save(commit=False)
+            data.slug = data.name.lower().replace(" ","-")
+            data.save()
+            return redirect("admin_manage_author")
+    return render(req, "admin/edit_author.html", {"form": form})
+
+
+@staff_member_required(login_url="login")
 def manageAuthor(req):
     data = {}
     form = AuthorFrom(req.POST or None)

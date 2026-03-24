@@ -35,7 +35,7 @@
                     </td>
                     <td class="border p-3">{{ book.isbn }}</td>
                     <td class="border p-3 ">
-                        <a href="#" class="px-2 py-1 bg-blue-600 text-white rounded">Edit</a>
+                        <a href="{% url 'admin_edit_book' book.id %}" class="px-2 py-1 bg-blue-600 text-white rounded">Edit</a>
                         <a href="#" class="px-2 py-1 bg-red-600 text-white rounded">Delete</a>
                     </td>
                 </tr>
@@ -48,6 +48,8 @@
             <p>Total Books: {{ books.paination.count}}</p>
             <p>Showing {{books.start_index}} to {{books.end_index}}</p>
             <p>Page No: {{books.number}}</p>
+            
+
 
 
 
