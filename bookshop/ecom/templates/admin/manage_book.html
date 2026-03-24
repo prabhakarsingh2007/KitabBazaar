@@ -36,7 +36,7 @@
                     <td class="border p-3">{{ book.isbn }}</td>
                     <td class="border p-3 ">
                         <a href="{% url 'admin_edit_book' book.id %}" class="px-2 py-1 bg-blue-600 text-white rounded">Edit</a>
-                        <a href="#" class="px-2 py-1 bg-red-600 text-white rounded">Delete</a>
+                        <a href="{% url 'admin_delete_book' book.id %}" class="px-2 py-1 bg-red-600 text-white rounded">X</a>
                     </td>
                 </tr>
                 {% endfor %}

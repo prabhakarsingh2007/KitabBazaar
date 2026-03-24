@@ -71,6 +71,12 @@ def editBook(req, id):
     return render(req,'admin/edit_book.html',{"form":form})
 
 @staff_member_required(login_url="login")
+def deleteBook(req, id):
+    book = Book.objects.get(id=id)
+    book.delete()
+    return redirect("admin_manage_book")
+
+@staff_member_required(login_url="login")
 def editGenere(req, id):
     genere = Genere.objects.get(id=id)
     form = GenereFrom(req.POST or None, instance=genere)
@@ -83,6 +89,12 @@ def editGenere(req, id):
     return render(req,'admin/edit_genere.html',{"form":form})
 
 @staff_member_required(login_url="login")
+def deleteGenere(req, id):
+    genere = Genere.objects.get(id=id)
+    genere.delete()
+    return redirect("admin_manage_genere")
+
+@staff_member_required(login_url="login")
 def editAuthor(req, id):
     author = Author.objects.get(id=id)
     form = AuthorFrom(req.POST or None, instance=author)
@@ -93,6 +105,12 @@ def editAuthor(req, id):
             data.save()
             return redirect("admin_manage_author")
     return render(req, "admin/edit_author.html", {"form": form})
+
+@staff_member_required(login_url="login")
+def deleteAuthor(req, id):
+    author = Author.objects.get(id=id)
+    author.delete()
+    return redirect("admin_manage_author")
 
 
 @staff_member_required(login_url="login")

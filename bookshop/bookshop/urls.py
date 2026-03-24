@@ -15,10 +15,13 @@ urlpatterns = [
     path('admin/', dashboard, name='admin_index'),
     path('admin/genere', manageGenere, name="admin_manage_genere"),
     path('admin/genere/<int:id>/', editGenere, name="admin_edit_genere"),
+    path('admin/genere/<int:id>/delete', deleteGenere, name="admin_delete_genere"),
     path('admin/author', manageAuthor, name="admin_manage_author"),
     path('admin/author/<int:id>/', editAuthor, name="admin_edit_author"),
+    path('admin/author/<int:id>/delete', deleteAuthor, name="admin_delete_author"),
     path('admin/book', manageBooks, name="admin_manage_book"),
     path('admin/book/<int:id>/', editBook, name="admin_edit_book"),
+    path('admin/book/<int:id>/delete', deleteBook, name="admin_delete_book"),
     path('admin/book/insert', insertBook, name="admin_insert_book"),
     
     

@@ -25,14 +25,17 @@
                     <td class="border p-3">{{genere.tittle}}</td>
                     <td class="border p-3">{{genere.description}}</td>
                     <td class="border p-3">
-                        <a href="{% url 'admin_edit_genere' genere.id %}" class="bg-blue-500 text-white px-3 py-1 rounded">Edit</a>
+                        <a href="{% url 'admin_edit_genere' genere.id %}"
+                            class="bg-blue-500 text-white px-3 py-1 rounded">Edit</a>
+                        <a href="{% url 'admin_delete_genere' genere.id %}"
+                            class="bg-red-500 text-white px-3 py-1 rounded">X</a>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
 
         </table>
-           {# summary of pages. total generes 40 (showing 1 of 5) page no 1 #}
+        {# summary of pages. total generes 40 (showing 1 of 5) page no 1 #}
         {# pagination button #}
         <div class="flex items items-center mt-5 text-sm text-slate-500 gap-2">
             <p>Total Generes: {{ generes.paination.count}}</p>
@@ -63,13 +66,13 @@
         </div>
     </div>
 
-        
+
     <div class="flex w-3/12">
         <h2 class="space-y-3 font-semibold text-2xl">Insert Genere</h2>
         <form action="" method="post">
-             {% csrf_token %} 
-             {{form|crispy}}
-             <button type="submit" class="bg-red-700 text-white px-3 py-2 rounded mt-5">Add Genere</button>
+            {% csrf_token %}
+            {{form|crispy}}
+            <button type="submit" class="bg-red-700 text-white px-3 py-2 rounded mt-5">Add Genere</button>
         </form>
     </div>
 

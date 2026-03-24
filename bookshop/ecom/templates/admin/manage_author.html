@@ -30,6 +30,7 @@
                     <td class="border p-3">{{author.authors.count}}</td>
                     <td class="border p-3">
                         <a href="{% url 'admin_edit_author' author.id %}" class="bg-blue-500 text-white px-3 py-1 rounded">Edit</a>
+                        <a href="{% url 'admin_delete_author' author.id %}" class="bg-red-500 text-white px-3 py-1 rounded">X</a>
                     </td>
 
                 </tr>
