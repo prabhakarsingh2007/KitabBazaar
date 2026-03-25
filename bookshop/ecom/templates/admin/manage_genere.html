@@ -24,7 +24,7 @@
                     <td class="border p-3">{{genere.id}}</td>
                     <td class="border p-3">{{genere.tittle}}</td>
                     <td class="border p-3">{{genere.description}}</td>
-                    <td class="border p-3">
+                    <td class="border p-3 flex justify-between gap-3">
                         <a href="{% url 'admin_edit_genere' genere.id %}"
                             class="bg-blue-500 text-white px-3 py-1 rounded">Edit</a>
                         <a href="{% url 'admin_delete_genere' genere.id %}"
