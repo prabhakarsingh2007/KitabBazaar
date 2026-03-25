@@ -72,7 +72,7 @@ class Coupon(models.Model):
             return self.code
         
 
-class Pyment(models.Model):
+class Payment(models.Model):
    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
    amount = models.DecimalField(max_digits=10, decimal_places=2)    
    payment_method = models.CharField(max_length=50)
@@ -90,9 +90,9 @@ class Order(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     order_date = models.DateTimeField(auto_now_add=True)
-    Pyment_id = models.ForeignKey(Pyment, on_delete=models.CASCADE, null=True, blank=True)
+    Payment_id = models.ForeignKey(Payment, on_delete=models.CASCADE, null=True, blank=True)
     coupon_code = models.CharField(max_length=50, null=True, blank=True)
-    adderss_id = models.ForeignKey(Address, on_delete=models.CASCADE, null=True, blank=True)
+    address_id = models.ForeignKey(Address, on_delete=models.CASCADE, null=True, blank=True)
 
 
     def __str__(self):

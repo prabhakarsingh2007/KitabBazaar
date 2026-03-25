@@ -19,3 +19,13 @@ class BookAdmin(admin.ModelAdmin):
     list_display = ('tittle', 'author', 'genere', 'price', 'discount_price', 'isbn')
     prepopulated_fields = {'slug': ('tittle',)}
 admin.site.register(Book, BookAdmin )
+
+
+
+
+admin.site.register(Address)
+admin.site.register(Order)  
+admin.site.register(OrderItem)
+admin.site.register(Payment)
+admin.site.register(Coupon)
+
