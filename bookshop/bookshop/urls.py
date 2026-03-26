@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path
+from ecom.checkoutView import *
 from ecom.views import *
 from django.conf.urls.static import static
 from ecom.adminView import *
@@ -38,4 +39,16 @@ urlpatterns = [
     path('auth/login/', login, name='login'),
     path('auth/register/', register, name='register'),
     path('auth/logout/', logout, name='logout'),
+    path('cart/', cart, name='cart'),
+
+    # checkout pages
+    path('checkout/add-to-cart/<slug:slug>/', addToCart, name='add_to_cart'),
+    path('checkout/remove-from-cart/<slug:slug>/', removeFromCart, name='remove_from_cart'),
+    path('checkout/minus-from-cart/<slug:slug>/', minusFromCart, name='minus_from_cart'),
+    path('checkout/', checkout, name='checkout'),
+    path('checkout/apply-coupon/', applyCoupon, name='apply_coupon'),
+    path('checkout/remove-coupon/', removeCoupon, name='remove_coupon'),
+    path('checkout/checkcout/', checkCout, name='checkcout'),
+    
+    
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
