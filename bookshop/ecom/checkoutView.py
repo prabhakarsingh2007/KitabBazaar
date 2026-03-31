@@ -11,7 +11,7 @@ def addToCart(req, slug):
 
     # active order jaisa aapka flow tha, waise hi latest order pick kar rahe hain
     order_qs = Order.objects.filter(user_id=req.user).order_by('-id')
-
+ 
     if order_qs.exists():
         order = order_qs[0]
 
