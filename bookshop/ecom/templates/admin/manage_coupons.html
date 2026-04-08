@@ -1,0 +1,76 @@
+{% extends "admin/admin_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="flex flex-1">
+    <div class="flex w-9/12 flex-col p-5">
+        <h2 class="space-y-3 font-semibold text-2xl">Manage Coupons({{ coupons|length }})</h2>
+
+        <table class="w-full border mt-5">
+            <thead>
+                <tr>
+                    <th class="border p-3">ID</th>
+                    <th class="border p-3">Code</th>
+                    <th class="border p-3">Discount</th>
+                    <th class="border p-3">Valid From</th>
+                    <th class="border p-3">Valid To</th>
+                    <th class="border p-3">Active</th>
+                    <th class="border p-3">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for coupon in coupons %}
+                <tr>
+                    <td class="border p-3">{{ coupon.id }}</td>
+                    <td class="border p-3">{{ coupon.code }}</td>
+                    <td class="border p-3">{{ coupon.discount_amount }}</td>
+                    <td class="border p-3">{{ coupon.valid_from }}</td>
+                    <td class="border p-3">{{ coupon.valid_to }}</td>
+                    <td class="border p-3">{{ coupon.active }}</td>
+                    <td class="border p-3">
+                        <a href="{% url 'admin_edit_coupon' coupon.id %}" class="bg-blue-500 text-white px-3 py-1 rounded">Edit</a>
+                        <a href="{% url 'admin_delete_coupon' coupon.id %}" class="bg-red-500 text-white px-3 py-1 rounded">X</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td class="border p-3 text-center" colspan="7">No coupons found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="flex items-center mt-5 text-sm text-slate-500 gap-2">
+            <p>Total Coupons: {{ coupons.paginator.count }}</p>
+            <p>Showing {{ coupons.start_index }} to {{ coupons.end_index }}</p>
+            <p>Page No: {{ coupons.number }}</p>
+        </div>
+
+        <div class="mt-5 flex items-center gap-3 justify-between">
+            {% if coupons.has_previous %}
+            <span class="px-3 py-1 border bg-gray-300"><a href="?page={{ coupons.previous_page_number }}">Previous</a></span>
+            {% else %}
+            <span class="px-3 py-1 border bg-gray-300 text-gray-500 cursor-not-allowed">Previous</span>
+            {% endif %}
+
+            {% if coupons.has_next %}
+            <span class="px-3 py-1 border bg-green-300"><a href="?page={{ coupons.next_page_number }}">Next</a></span>
+            {% else %}
+            <span class="px-3 py-1 border bg-gray-300 text-gray-500 cursor-not-allowed">Next</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="flex w-3/12 flex-col">
+        <h2 class="space-y-3 font-semibold text-2xl">Add Coupon</h2>
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button type="submit" class="bg-red-700 text-white px-3 py-2 rounded mt-5">Add Coupon</button>
+        </form>
+    </div>
+</div>
+
+{% endblock content %}

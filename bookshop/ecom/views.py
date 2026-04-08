@@ -1,58 +1,60 @@
 from django.shortcuts import render
-import re
-
 from .models import *
-import re
+import re 
+
 # Create your views here.
 
-
-def home(request):
+def homepage(req):
     data = {
-        'tittle': 'home',
-        'genres': Genere.objects.all(),
-        'books': Book.objects.all(),
+        "title":"Home",
+        "generes":Genere.objects.all(),
+        "books":Book.objects.all()
     }
-    return render(request, 'home.html', data)
+    return render(req, "home.html", data) 
 
-def filter(request, slug=None):
+def filter(req, slug=None):
     if slug is None:
-        search_query = request.GET.get("search", "")
+        search_query = req.GET.get("search", "")
         if search_query:
-            # if search query
-            if re.match(r"[0-9]{10}(\d{3})?$", search_query):
+            # if search query is isbn no then direct open book view page
+            if re.match(r"^[0-9]{10}(\d{3})?$", search_query):
                 try:
                     book = Book.objects.get(isbn=search_query)
-                    return render(request, "book_view.html", {
+                    return render(req, "book_view.html", {
                         "book": book,
-                        "genres": Genere.objects.all(),
-                        "related_book": Book.objects.filter(genere=book.genere).exclude(slug=book.slug)[:6]
+                        "generes": Genere.objects.all(),
+                        "related_books": Book.objects.filter(genere=book.genere).exclude(slug=book.slug)[:6]
                     })
                 except Book.DoesNotExist:
-                    pass
+                    pass 
+            
         data = {
-            'genres': Genere.objects.all(),
-            'books': Book.objects.filter(tittle__icontains=search_query),
-            'tittle': search_query,
+            "generes":Genere.objects.all(),
+            "books":Book.objects.filter(title__icontains=search_query),
+            "title": search_query
         }
-        return render(request, "filter.html", data)
+        return render(req, "filter.html", data)
     else:
-        genre = Genere.objects.get(slug=slug)
         data = {
-            'genres': Genere.objects.all(),
-            'books': Book.objects.filter(genere__slug=slug),
-            'tittle': genre.tittle,
+            "generes":Genere.objects.all(),
+            "books":Book.objects.filter(genere__slug=slug),
+            "title":Genere.objects.get(slug=slug).title
         }
-        return render(request, "filter.html", data)
-        
+        return render(req, "filter.html", data)
 
-
-def book_view(request, slug):
-    return render(request, "book_view.html", {
+def book_view(req, slug):
+    return render(req, "book_view.html", {
         "book": Book.objects.get(slug=slug),
-        "genres": Genere.objects.all(),
+        "generes": Genere.objects.all(),
         "related_books": Book.objects.filter(genere=Book.objects.get(slug=slug).genere).exclude(slug=slug)[:6]
     })
 
-
 def cart(req):
-    return render(req, "cart.html",)
+    cart_items = OrderItem.objects.filter(order_id__user_id=req.user, order_id__payment_id=None)
+    order = Order.objects.filter(user_id=req.user, payment_id=None)
+
+    if order.exists():
+        order = order[0]
+
+    generes = Genere.objects.all()
+    return render(req, "cart.html",{"cart_items":cart_items, "order":order, "generes":generes})   

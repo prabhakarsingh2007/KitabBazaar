@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    {#  add address form  #}
+    <div class="w-full max-w-md mx-auto mt-10">
+        <h2 class="text-2xl font-medium text-slate-700 mb-5">Add New Address</h2>
+        <form action="{% url 'add_address' %}" method="post" class="bg-white p-5 border border-slate-200 rounded-md">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <div class="mt-5">
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-md">Save Address</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

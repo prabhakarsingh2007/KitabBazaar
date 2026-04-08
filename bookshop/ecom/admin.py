@@ -1,31 +1,26 @@
 from django.contrib import admin
 from .models import *
 
-# Register your models here.
+
 
 class GenereAdmin(admin.ModelAdmin):
-    list_display = ('tittle', 'slug')
-    prepopulated_fields = {'slug': ('tittle',)}
+    list_display = ("title","slug")
+    prepopulated_fields = {"slug":("title",)}
 
-
-admin.site.register(Genere, GenereAdmin)
+admin.site.register(Genere,GenereAdmin)
 
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slug', )
-    prepopulated_fields = {'slug': ('name',)}
-
+    list_display = ("name","slug")
+    prepopulated_fields = {"slug":("name",)}
 admin.site.register(Author, AuthorAdmin)
+
 class BookAdmin(admin.ModelAdmin):
-    list_display = ('tittle', 'author', 'genere', 'price', 'discount_price', 'isbn')
-    prepopulated_fields = {'slug': ('tittle',)}
-admin.site.register(Book, BookAdmin )
+    list_display = ("title","price","discount_price","genere","author","isbn")
+    prepopulated_fields = {"slug":("title",)}
+admin.site.register(Book, BookAdmin)
 
-
-
-
-admin.site.register(Address)
-admin.site.register(Order)  
+admin.site.register(Order)
 admin.site.register(OrderItem)
+admin.site.register(Address)
 admin.site.register(Payment)
 admin.site.register(Coupon)
-

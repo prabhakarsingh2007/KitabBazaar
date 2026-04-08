@@ -1,54 +1,57 @@
 
-from django.conf import settings
 from django.contrib import admin
 from django.urls import path
-from ecom.checkoutView import *
 from ecom.views import *
+from django.conf import settings
 from django.conf.urls.static import static
 from ecom.adminView import *
 from ecom.authview import *
-
+from ecom.checkoutView import *
 
 urlpatterns = [
     path('superadmin/', admin.site.urls),
+    # admin pages
+    path("admin/", dashboard, name="admin_index"),
+    path("admin/genere", manageGenere, name="admin_manage_genere"),
+    path("admin/genere/<int:id>/edit/", editGenere, name="admin_edit_genere"),
+    path("admin/genere/<int:id>/delete/", deleteGenere, name="admin_delete_genere"),
+    
+    path("admin/coupon", manageCoupons, name="admin_manage_coupon"),
+    path("admin/coupon/<int:id>/edit/", editCoupon, name="admin_edit_coupon"),
+    path("admin/coupon/<int:id>/delete/", deleteCoupon, name="admin_delete_coupon"),
+    
+    path("admin/author", manageAuthor, name="admin_manage_author"),
+    path("admin/author/<int:id>/edit/", editAuthor, name="admin_edit_author"),
+    path("admin/author/<int:id>/delete/", deleteAuthor, name="admin_delete_author"),
+    path("admin/book", manageBooks, name="admin_manage_book"),
+    path("admin/book/<int:id>/edit/", editBook, name="admin_edit_book"),
+    path("admin/book/<int:id>/delete/", deleteBook, name="admin_delete_book"),
+    path("admin/book/insert", insertBook, name="admin_insert_book"),
 
-    #admin pages
-    path('admin/', dashboard, name='admin_index'),
-    path('admin/genere', manageGenere, name="admin_manage_genere"),
-    path('admin/genere/<int:id>/', editGenere, name="admin_edit_genere"),
-    path('admin/genere/<int:id>/delete', deleteGenere, name="admin_delete_genere"),
-    path('admin/author', manageAuthor, name="admin_manage_author"),
-    path('admin/author/<int:id>/', editAuthor, name="admin_edit_author"),
-    path('admin/author/<int:id>/delete', deleteAuthor, name="admin_delete_author"),
-    path('admin/book', manageBooks, name="admin_manage_book"),
-    path('admin/book/<int:id>/', editBook, name="admin_edit_book"),
-    path('admin/book/<int:id>/delete', deleteBook, name="admin_delete_book"),
-    path('admin/book/insert', insertBook, name="admin_insert_book"),
-    
-    
-    
-    
+    # homepage
+    path("", homepage, name="home"),
+    path("filter/", filter, name="filter"),
+    path("filter/<slug:slug>/", filter, name="category_filter"),
+    path("book-view/<slug:slug>/",book_view, name="book_view"),
+    path("cart/", cart, name="cart"),
 
-    #homepage
-    path('', home, name='home'),
-    path('filter/', filter, name='filter'),
-    path('filter/<slug:slug>/', filter, name='category_filter'),
-    path('book_view/<slug:slug>/', book_view, name='book_view'),
+    # auth pages
+    path("auth/login/", login, name="login"),
+    path("auth/register/", register, name="register"),
+    path("auth/logout/", logout, name="logout"),
 
-    #authpages
-    path('auth/login/', login, name='login'),
-    path('auth/register/', register, name='register'),
-    path('auth/logout/', logout, name='logout'),
-    path('cart/', cart, name='cart'),
+
 
     # checkout pages
-    path('checkout/add-to-cart/<slug:slug>/', addToCart, name='add_to_cart'),
-    path('checkout/remove-from-cart/<slug:slug>/', removeFromCart, name='remove_from_cart'),
-    path('checkout/minus-from-cart/<slug:slug>/', minusFromCart, name='minus_from_cart'),
-    path('checkout/', checkout, name='checkout'),
-    path('checkout/apply-coupon/', applyCoupon, name='apply_coupon'),
-    path('checkout/remove-coupon/', removeCoupon, name='remove_coupon'),
-    path('checkout/checkcout/', checkCout, name='checkcout'),
-    
+    path("checkout/add-to-cart/<slug:slug>/", addToCart, name="add_to_cart"),
+    path("checkout/remove-from-cart/<slug:slug>/", removeFromCart, name="remove_from_cart"),
+    path("checkout/minus-from-cart/<slug:slug>/", minusFromCart, name="minus_from_cart"),
+    path("checkout/", checkout, name="checkout"),
+    path("checkout/apply-coupon/", applyCoupon, name="apply_coupon"),
+    path("checkout/remove-coupon/", removeCoupon, name="remove_coupon"),
+    path("checkout/add-address/", addAddress, name="add_address"),
+    path("checkout/success/", success, name="success"),
+
+
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
