@@ -34,6 +34,7 @@ class Book(models.Model):
     cover_image = models.ImageField(upload_to="books/cover", validators=[validate_image_extension])
     edition = models.CharField(max_length=50, default="Latest Edition")
     isbn = models.CharField(max_length=200)
+    stock = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -79,12 +80,20 @@ class Payment(models.Model):
     
 
 class Order(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending Payment'),
+        ('PROCESSING', 'Processing'),
+        ('SHIPPED', 'Shipped'),
+        ('DELIVERED', 'Delivered'),
+        ('CANCELLED', 'Cancelled'),
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     order_date = models.DateTimeField(auto_now_add=True)
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, null=True, blank=True)
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     address = models.ForeignKey(Address, on_delete=models.CASCADE, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 
     def __str__(self):
         return f"Order {self.user.username} - {self.total_price}"

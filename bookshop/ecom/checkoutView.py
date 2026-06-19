@@ -11,12 +11,22 @@ from .forms import AddressForm
 def addToCart(req, slug):
     if req.method == "POST":
         book = get_object_or_404(Book, slug=slug)
+        if book.stock < 1:
+            messages.error(req, f"'{book.title}' is currently out of stock.")
+            return redirect("cart")
+
         order, created = Order.objects.get_or_create(user=req.user, payment=None, defaults={"total_price": 0})
-        order_item, created = OrderItem.objects.get_or_create(order=order, book=book, defaults={"quantity": 1})
-        if not created:
-            order_item.quantity += 1
-            order_item.save()
-        messages.success(req, f"'{book.title}' added to cart.")
+        order_item, item_created = OrderItem.objects.get_or_create(order=order, book=book, defaults={"quantity": 1})
+        
+        if not item_created:
+            if order_item.quantity + 1 > book.stock:
+                messages.error(req, f"Only {book.stock} copies of '{book.title}' are available in stock.")
+            else:
+                order_item.quantity += 1
+                order_item.save()
+                messages.success(req, f"Quantity of '{book.title}' increased.")
+        else:
+            messages.success(req, f"'{book.title}' added to cart.")
     return redirect("cart")
 
 @login_required
@@ -66,6 +76,15 @@ def checkout(req):
             with transaction.atomic():
                 address = get_object_or_404(Address, id=address_id, user=req.user)
                 
+                # Check and deduct stock levels
+                for item in order.order_items.all():
+                    # Select for update to prevent race conditions in highly concurrent environments
+                    book_ref = Book.objects.select_for_update().get(id=item.book.id)
+                    if book_ref.stock < item.quantity:
+                        raise ValueError(f"Not enough stock for book: '{book_ref.title}'. Only {book_ref.stock} copies available.")
+                    book_ref.stock -= item.quantity
+                    book_ref.save()
+
                 # Finalize total price on the order
                 order.total_price = order.get_total_payable_price()
 

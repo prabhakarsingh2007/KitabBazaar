@@ -1,0 +1,113 @@
+{% extends "admin/admin_base.html" %}
+
+{% block content %}
+<div class="flex flex-1 gap-5 p-5">
+    <div class="flex w-full flex-col">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="font-semibold text-2xl text-slate-800">Manage Stocks</h2>
+        </div>
+
+        <div class="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold text-sm uppercase">
+                        <th class="p-4">ID</th>
+                        <th class="p-4">Cover</th>
+                        <th class="p-4">Book Details</th>
+                        <th class="p-4 text-center">Current Stock</th>
+                        <th class="p-4 text-right">Update Stock</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700 text-sm">
+                    {% for book in books %}
+                    <tr class="hover:bg-slate-50 transition duration-150">
+                        <td class="p-4 font-medium text-slate-900">#{{ book.id }}</td>
+                        <td class="p-4">
+                            {% if book.cover_image %}
+                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-12 h-16 object-cover rounded shadow-sm">
+                            {% else %}
+                            <div class="w-12 h-16 bg-slate-200 flex items-center justify-center rounded">
+                                <span class="text-xs text-slate-400">No Image</span>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="p-4">
+                            <div class="font-semibold text-base text-slate-900">{{ book.title }}</div>
+                            <div class="text-xs text-slate-500 mt-0.5">Author: <span class="font-medium text-slate-700">{{ book.author.name }}</span></div>
+                            <div class="text-xs text-slate-500">Genre: <span class="font-medium text-slate-700">{{ book.genere.title }}</span></div>
+                            <div class="text-xs text-slate-500">ISBN: <span class="font-medium text-slate-700">{{ book.isbn }}</span></div>
+                        </td>
+                        <td class="p-4 text-center">
+                            {% if book.stock == 0 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800">
+                                Out of Stock
+                            </span>
+                            {% elif book.stock < 5 %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                                Low Stock: {{ book.stock }}
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
+                                {{ book.stock }} in stock
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-right">
+                            <form action="{% url 'admin_manage_stocks' %}" method="POST" class="inline-flex items-center gap-2">
+                                {% csrf_token %}
+                                <input type="hidden" name="book_id" value="{{ book.id }}">
+                                <input type="number" name="stock" value="{{ book.stock }}" min="0" required
+                                    class="w-20 px-3 py-1.5 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 text-center">
+                                <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-3 py-1.5 rounded text-xs font-medium transition">
+                                    Update
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="p-8 text-center text-slate-500">
+                            No books found in database.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between mt-6 text-sm text-slate-500">
+            <div>
+                Showing <span class="font-semibold text-slate-800">{{ books.start_index }}</span> to 
+                <span class="font-semibold text-slate-800">{{ books.end_index }}</span> of 
+                <span class="font-semibold text-slate-800">{{ books.paginator.count }}</span> books.
+            </div>
+            <div class="flex items-center gap-2">
+                {% if books.has_previous %}
+                <a href="?page={{ books.previous_page_number }}" class="px-3 py-1.5 border border-slate-300 rounded bg-white text-slate-700 hover:bg-slate-50 transition">
+                    Previous
+                </a>
+                {% else %}
+                <span class="px-3 py-1.5 border border-slate-200 rounded bg-slate-50 text-slate-400 cursor-not-allowed">
+                    Previous
+                </span>
+                {% endif %}
+
+                <span class="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-medium">
+                    Page {{ books.number }} of {{ books.paginator.num_pages }}
+                </span>
+
+                {% if books.has_next %}
+                <a href="?page={{ books.next_page_number }}" class="px-3 py-1.5 border border-slate-300 rounded bg-white text-slate-700 hover:bg-slate-50 transition">
+                    Next
+                </a>
+                {% else %}
+                <span class="px-3 py-1.5 border border-slate-200 rounded bg-slate-50 text-slate-400 cursor-not-allowed">
+                    Next
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

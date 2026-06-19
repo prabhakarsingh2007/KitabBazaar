@@ -10,7 +10,8 @@ from ecom.authview import (
     manageCoupons, editCoupon, deleteCoupon,
     manageAuthor, editAuthor, deleteAuthor,
     manageBooks, editBook, deleteBook, insertBook,
-    login, register, logout
+    login, register, logout, manageOrders, orderDetail,
+    manageStocks, manageUsers
 )
 from ecom.checkoutView import (
     addToCart, removeFromCart, minusFromCart,
@@ -36,6 +37,10 @@ urlpatterns = [
     path("admin/book/<int:id>/edit/", editBook, name="admin_edit_book"),
     path("admin/book/<int:id>/delete/", deleteBook, name="admin_delete_book"),
     path("admin/book/insert", insertBook, name="admin_insert_book"),
+    path("admin/orders/", manageOrders, name="admin_manage_orders"),
+    path("admin/orders/<int:id>/", orderDetail, name="admin_order_detail"),
+    path("admin/stocks/", manageStocks, name="admin_manage_stocks"),
+    path("admin/users/", manageUsers, name="admin_manage_users"),
 
     # homepage
     path("", homepage, name="home"),

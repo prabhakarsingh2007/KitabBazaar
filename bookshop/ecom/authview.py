@@ -10,6 +10,8 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.utils.text import slugify
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.db.models import Count, Q
+from django.contrib import messages
 
 def superuser_required(view_func):
     @wraps(view_func)
@@ -239,3 +241,93 @@ def register(req):
 def logout(req):
     auth_logout(req)
     return redirect("home")
+
+
+@superuser_required
+def manageOrders(req):
+    data = {}
+    orders = Order.objects.select_related('user', 'payment').filter(payment__isnull=False).order_by('-order_date')
+    
+    # pagination
+    paginator = Paginator(orders, 10)
+    page_number = req.GET.get("page")
+    orders_obj = paginator.get_page(page_number)
+    
+    data["orders"] = orders_obj
+    return render(req, "admin/manage_orders.html", data)
+
+
+@superuser_required
+def orderDetail(req, id):
+    order = get_object_or_404(
+        Order.objects.select_related('user', 'payment', 'address', 'coupon').prefetch_related('order_items__book'),
+        id=id,
+        payment__isnull=False
+    )
+    
+    if req.method == "POST":
+        new_status = req.POST.get("status")
+        if new_status in dict(Order.STATUS_CHOICES):
+            order.status = new_status
+            order.save()
+            return redirect("admin_order_detail", id=id)
+            
+    return render(req, "admin/order_detail.html", {"order": order, "status_choices": Order.STATUS_CHOICES})
+
+
+@superuser_required
+def manageStocks(req):
+    if req.method == "POST":
+        book_id = req.POST.get("book_id")
+        new_stock = req.POST.get("stock")
+        if book_id and new_stock is not None:
+            try:
+                book = get_object_or_404(Book, id=book_id)
+                book.stock = int(new_stock)
+                book.save()
+                messages.success(req, f"Stock for '{book.title}' updated to {book.stock}.")
+            except ValueError:
+                messages.error(req, "Invalid stock value.")
+        return redirect("admin_manage_stocks")
+
+    books = Book.objects.select_related('author', 'genere').order_by('title')
+    paginator = Paginator(books, 10)
+    page_number = req.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    
+    return render(req, "admin/manage_stocks.html", {"books": page_obj})
+
+
+@superuser_required
+def manageUsers(req):
+    if req.method == "POST":
+        user_id = req.POST.get("user_id")
+        action = req.POST.get("action")
+        user = get_object_or_404(User, id=user_id)
+        
+        if user == req.user:
+            messages.error(req, "You cannot modify your own account status.")
+        elif action == "toggle_active":
+            user.is_active = not user.is_active
+            user.save()
+            messages.success(req, f"User '{user.username}' active status updated.")
+        elif action == "toggle_staff":
+            user.is_staff = not user.is_staff
+            user.save()
+            messages.success(req, f"User '{user.username}' staff status updated.")
+        elif action == "delete":
+            username = user.username
+            user.delete()
+            messages.success(req, f"User '{username}' deleted successfully.")
+            
+        return redirect("admin_manage_users")
+
+    users = User.objects.annotate(
+        order_count=Count('order', filter=Q(order__payment__isnull=False))
+    ).order_by('-date_joined')
+    
+    paginator = Paginator(users, 10)
+    page_number = req.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    
+    return render(req, "admin/manage_users.html", {"users": page_obj})

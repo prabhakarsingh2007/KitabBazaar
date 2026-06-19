@@ -1,0 +1,206 @@
+{% extends "admin/admin_base.html" %}
+
+{% block content %}
+<div class="w-full p-5 space-y-6">
+    <!-- Breadcrumb & Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-5 gap-4">
+        <div>
+            <a href="{% url 'admin_manage_orders' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                <span>Back to Orders</span>
+            </a>
+            <h2 class="text-2xl font-extrabold text-slate-800 mt-2 tracking-tight">Order Details #{{ order.id }}</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Placed on {{ order.order_date|date:"d-M-Y \a\t H:i" }}</p>
+        </div>
+        <div>
+            {% if order.status == 'DELIVERED' %}
+            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold bg-emerald-100 text-emerald-800">
+                Delivered
+            </span>
+            {% elif order.status == 'PENDING' %}
+            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold bg-amber-100 text-amber-800">
+                Pending Payment
+            </span>
+            {% elif order.status == 'PROCESSING' %}
+            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                Processing
+            </span>
+            {% elif order.status == 'SHIPPED' %}
+            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-800">
+                Shipped
+            </span>
+            {% else %}
+            <span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold bg-rose-100 text-rose-800">
+                Cancelled
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main details (Left 2 columns) -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Order Items -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-800 mb-5">Items Summary</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse text-left">
+                        <thead>
+                            <tr class="border-b border-slate-100 text-slate-400 font-semibold text-xs uppercase tracking-wider">
+                                <th class="pb-3 text-left">Book Title</th>
+                                <th class="pb-3 text-center">Price</th>
+                                <th class="pb-3 text-center">Quantity</th>
+                                <th class="pb-3 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-50 text-slate-700">
+                            {% for item in order.order_items.all %}
+                            <tr>
+                                <td class="py-4 flex gap-4 items-center">
+                                    {% if item.book.cover_image %}
+                                    <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-12 h-16 object-cover rounded shadow-sm border border-slate-100 shrink-0">
+                                    {% else %}
+                                    <div class="w-12 h-16 bg-slate-100 rounded border border-slate-200 shrink-0"></div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="font-bold text-slate-800 text-base">{{ item.book.title }}</div>
+                                        <div class="text-xs text-slate-400 mt-0.5">ISBN: {{ item.book.isbn }}</div>
+                                    </div>
+                                </td>
+                                <td class="py-4 text-center text-slate-600 font-medium">
+                                    {% if item.book.discount_price %}
+                                    <div class="font-semibold text-slate-800">₹{{ item.book.discount_price }}</div>
+                                    <div class="text-[10px] text-slate-400 line-through">₹{{ item.book.price }}</div>
+                                    {% else %}
+                                    <div class="font-semibold text-slate-800">₹{{ item.book.price }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 text-center font-bold text-slate-800 text-base">{{ item.quantity }}</td>
+                                <td class="py-4 text-right font-extrabold text-slate-900 text-base">
+                                    {% if item.book.discount_price %}
+                                    ₹{% widthratio item.book.discount_price 1 item.quantity %}
+                                    {% else %}
+                                    ₹{% widthratio item.book.price 1 item.quantity %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Financials Summary -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-800 mb-5">Invoice Totals</h3>
+                <div class="space-y-3 text-sm text-slate-600">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 font-medium">Subtotal</span>
+                        <span class="font-bold text-slate-800">₹{{ order.get_total_price }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 font-medium">Shipping Charges</span>
+                        <span>
+                            {% if order.get_shipping_charge > 0 %}
+                            <span class="font-bold text-slate-800">₹{{ order.get_shipping_charge }}</span>
+                            {% else %}
+                            <span class="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded text-xs">Free</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 font-medium">Taxes (18%)</span>
+                        <span class="font-bold text-slate-800">₹{{ order.get_tax_price }}</span>
+                    </div>
+                    {% if order.coupon %}
+                    <div class="flex justify-between text-emerald-600 font-semibold">
+                        <span class="text-emerald-500 font-medium">Discount Coupon ({{ order.coupon.code }})</span>
+                        <span class="bg-emerald-50 px-2.5 py-0.5 rounded text-xs">-₹{{ order.get_discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="border-t border-slate-100 pt-4 flex justify-between items-center">
+                        <span class="font-extrabold text-slate-900 text-lg">Total Payable</span>
+                        <span class="font-extrabold text-indigo-600 text-2xl">₹{{ order.get_total_payable_price }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar (Right Column) -->
+        <div class="space-y-8">
+            <!-- Update Status Card -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <h3 class="text-lg font-bold text-slate-800 mb-4">Update Status</h3>
+                <form action="" method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <select name="status" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition">
+                            {% for code, label in status_choices %}
+                            <option value="{{ code }}" {% if order.status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-semibold text-sm shadow-md shadow-indigo-500/10 transition duration-200">
+                        Update Status
+                    </button>
+                </form>
+            </div>
+
+            <!-- Customer Details Card -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
+                <!-- Customer Info -->
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wider border-b border-slate-100 pb-2 mb-3">Customer Profile</h4>
+                    <div class="text-sm space-y-1">
+                        <div class="font-bold text-slate-800 text-base">{{ order.user.username }}</div>
+                        <div class="text-slate-500 text-xs">Email: <span class="font-semibold text-slate-700">{{ order.user.email }}</span></div>
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wider border-b border-slate-100 pb-2 mb-3">Shipping Address</h4>
+                    <div class="text-sm text-slate-600">
+                        {% if order.address %}
+                        <div class="font-bold text-slate-800">{{ order.address.name }}</div>
+                        <div class="text-xs text-slate-500 mt-1 flex flex-col gap-0.5">
+                            <div>Phone: <span class="font-medium text-slate-700">{{ order.address.contact }}</span></div>
+                            <div>Email: <span class="font-medium text-slate-700">{{ order.address.email }}</span></div>
+                        </div>
+                        <div class="mt-3 text-slate-500 bg-slate-50 border border-slate-100 rounded-xl p-3.5 leading-relaxed text-xs font-medium">
+                            {{ order.address.address_line1 }}<br>
+                            {% if order.address.address_line2 %}{{ order.address.address_line2 }}<br>{% endif %}
+                            {{ order.address.city }}, {{ order.address.state }} - {{ order.address.postal_code }}
+                        </div>
+                        {% else %}
+                        <span class="text-rose-500 text-xs font-semibold">No address assigned.</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm uppercase tracking-wider border-b border-slate-100 pb-2 mb-3">Payment Info</h4>
+                    <div class="text-xs text-slate-600 space-y-1.5 font-medium">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Method</span>
+                            <span class="capitalize text-slate-800">{{ order.payment.payment_method }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Mode</span>
+                            <span class="text-slate-800">{{ order.payment.mode }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Payment Date</span>
+                            <span class="text-slate-800">{{ order.payment.payment_date|date:"d-M-Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
