@@ -4,7 +4,6 @@ from django.urls import path
 from ecom.views import *
 from django.conf import settings
 from django.conf.urls.static import static
-from ecom.adminView import *
 from ecom.authview import *
 from ecom.checkoutView import *
 

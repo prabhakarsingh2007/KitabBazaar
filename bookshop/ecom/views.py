@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from .models import *
 import re 
 
@@ -7,8 +8,7 @@ import re
 def homepage(req):
     data = {
         "title":"Home",
-        "generes":Genere.objects.all(),
-        "books":Book.objects.all()
+        "books":Book.objects.select_related('author', 'genere').all()
     }
     return render(req, "home.html", data) 
 
@@ -22,39 +22,36 @@ def filter(req, slug=None):
                     book = Book.objects.get(isbn=search_query)
                     return render(req, "book_view.html", {
                         "book": book,
-                        "generes": Genere.objects.all(),
-                        "related_books": Book.objects.filter(genere=book.genere).exclude(slug=book.slug)[:6]
+                        "related_books": Book.objects.select_related('author', 'genere').filter(genere=book.genere).exclude(slug=book.slug)[:6]
                     })
                 except Book.DoesNotExist:
                     pass 
             
         data = {
-            "generes":Genere.objects.all(),
-            "books":Book.objects.filter(title__icontains=search_query),
+            "books":Book.objects.select_related('author', 'genere').filter(title__icontains=search_query),
             "title": search_query
         }
         return render(req, "filter.html", data)
     else:
         data = {
-            "generes":Genere.objects.all(),
-            "books":Book.objects.filter(genere__slug=slug),
+            "books":Book.objects.select_related('author', 'genere').filter(genere__slug=slug),
             "title":Genere.objects.get(slug=slug).title
         }
         return render(req, "filter.html", data)
 
 def book_view(req, slug):
+    book = Book.objects.select_related('author', 'genere').get(slug=slug)
     return render(req, "book_view.html", {
-        "book": Book.objects.get(slug=slug),
-        "generes": Genere.objects.all(),
-        "related_books": Book.objects.filter(genere=Book.objects.get(slug=slug).genere).exclude(slug=slug)[:6]
+        "book": book,
+        "related_books": Book.objects.select_related('author', 'genere').filter(genere=book.genere).exclude(slug=slug)[:6]
     })
 
+@login_required
 def cart(req):
-    cart_items = OrderItem.objects.filter(order_id__user_id=req.user, order_id__payment_id=None)
-    order = Order.objects.filter(user_id=req.user, payment_id=None)
+    cart_items = OrderItem.objects.select_related('book__author', 'book__genere').filter(order__user=req.user, order__payment=None)
+    order = Order.objects.filter(user=req.user, payment=None)
 
     if order.exists():
         order = order[0]
 
-    generes = Genere.objects.all()
-    return render(req, "cart.html",{"cart_items":cart_items, "order":order, "generes":generes})   
+    return render(req, "cart.html", {"cart_items": cart_items, "order": order})   

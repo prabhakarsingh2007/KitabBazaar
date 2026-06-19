@@ -37,7 +37,7 @@
         <a href="{% url 'login' %}" class="px-4">Login</a>
         <a href="{% url 'register' %}" class="px-4">Register</a>
         {% endif %}
-        <a href="#" class="hover:text-blue-600">Cart</a>
+        <a href="{% url 'cart' %}" class="hover:text-blue-600">Cart</a>
     </div>
 
 </div>
@@ -46,9 +46,9 @@
 <div class="flex gap-4 px-6  bg-slate-100 overflow-x-auto ">
       <a href="{% url 'home'  %}" class="text-slate-600 py-2 border-r px-3 border-slate-300 hover:text-black font-medium">All Books</a>
 
-    {% for genre in genres %}
+    {% for genre in generes %}
         <a href="{% url 'category_filter' genre.slug %}" class="text-slate-600 py-2 border-r px-3 border-slate-300 hover:text-black font-medium">
-            {{ genre.tittle }}
+            {{ genre.title }}
         </a>
     {% endfor %}
 

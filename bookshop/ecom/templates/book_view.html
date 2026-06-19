@@ -9,10 +9,10 @@
         <a href="{% url 'home' %}" class="hover:underline">Home</a>
         <span class="mx-2">&raquo;</span>
         <a href="{% url 'category_filter' book.genere.slug %}" class="hover:underline">
-            {{ book.genere.tittle }}
+            {{ book.genere.title }}
         </a>
         <span class="mx-2">&raquo;</span>
-        <span>{{ book.tittle }}</span>
+        <span>{{ book.title }}</span>
     </div>
 
     <!-- Main Section -->
@@ -29,7 +29,7 @@
         <!-- Details -->
         <div class="md:col-span-4 p-2">
             <h2 class="text-2xl font-semibold text-gray-800 capitalize">
-                {{ book.tittle }}
+                {{ book.title }}
             </h2>
 
             <p class="text-sm text-slate-500 mt-1">
@@ -99,7 +99,7 @@
             <!-- Content -->
             <div class="p-3">
                 <h3 class="text-md font-semibold text-gray-800 line-clamp-1">
-                    {{ book.tittle }}
+                    {{ book.title }}
                 </h3>
                 <p class="text-md text-gray-500 mb-2">
                     {{ book.author }}

@@ -7,6 +7,7 @@ from functools import wraps
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.utils.text import slugify
 
 def superuser_required(view_func):
     @wraps(view_func)
@@ -26,9 +27,11 @@ def dashboard(req):
         "total_books": Book.objects.count(),
         "total_authors": Author.objects.count(),
         "total_generes": Genere.objects.count(),
-        "total_users": User.objects.count()
+        "total_users": User.objects.count(),
+        "total_orders": Order.objects.count(),
+        "recent_orders": Order.objects.select_related('user').order_by('-order_date')[:5]
     }
-    return render(req, "admin/dashboard.html",data) 
+    return render(req, "admin/dashboard.html", data) 
 
 
 @superuser_required
@@ -47,7 +50,7 @@ def manageGenere(req):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = data.title.lower().replace(" ", "-")
+            data.slug = slugify(data.title)
             data.save()
             return redirect("admin_manage_genere")
     return render(req, "admin/manage_genere.html", data)
@@ -61,7 +64,7 @@ def insertBook(req):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = data.title.lower().replace(" ", "-")
+            data.slug = slugify(data.title)
             data.save()
             return redirect("admin_manage_book")
     return render(req, "admin/insert_book.html",data)
@@ -90,7 +93,7 @@ def editBook(req, id):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = data.title.lower().replace(" ", "-")
+            data.slug = slugify(data.title)
             data.save()
             return redirect("admin_manage_book")
     return render(req, "admin/edit_book.html",{"form":form}) 
@@ -103,7 +106,7 @@ def editGenere(req, id):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = data.title.lower().replace(" ", "-")
+            data.slug = slugify(data.title)
             data.save()
             return redirect("admin_manage_genere")
     return render(req, "admin/edit_genere.html",{"form": form})
@@ -116,7 +119,7 @@ def editAuthor(req, id):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = data.name.lower().replace(" ", "-")
+            data.slug = slugify(data.name)
             data.save()
             return redirect("admin_manage_author")
     return render(req, "admin/edit_author.html", {"form":form})
@@ -154,7 +157,7 @@ def manageAuthor(req):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = data.name.lower().replace(" ", "-")
+            data.slug = slugify(data.name)
             data.save()
             return redirect("admin_manage_author")
     return render(req, "admin/manage_author.html",data)

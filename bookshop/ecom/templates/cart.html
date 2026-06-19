@@ -16,16 +16,16 @@
                     {% comment %} product iage {% endcomment %}
                    <div class="flex gap-3">
 
-                     <div class="w-24 h-24">
-                        <img src="{{ item.book_id.cover_image.url }}" alt="{{ item.book_id.title }}" class="w-full h-full object-cover">
+                      <div class="w-24 h-24">
+                        <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-full h-full object-cover">
                     </div>
                     {% comment %} product details {% endcomment %}
                     <div class="flex flex-col">
-                        <h3 class="text-lg font-medium text-slate-700">{{ item.book_id.title }}</h3>
-                        <p class="text-sm text-slate-500">{{ item.book_id.author.name }}</p>
-                        <p class="text-sm text-slate-500">{{ item.book_id.genere.title }}</p>
-                        <p class="text-sm text-slate-500"><del class="">₹{{ item.book_id.price }}</del>
-                                                            <span class="">₹{{ item.book_id.discount_price }}</span>
+                        <h3 class="text-lg font-medium text-slate-700">{{ item.book.title }}</h3>
+                        <p class="text-sm text-slate-500">{{ item.book.author.name }}</p>
+                        <p class="text-sm text-slate-500">{{ item.book.genere.title }}</p>
+                        <p class="text-sm text-slate-500"><del class="">₹{{ item.book.price }}</del>
+                                                            <span class="">₹{{ item.book.discount_price }}</span>
                         </p>
                     </div>
 
@@ -33,12 +33,12 @@
                    <div class="flex gap-5 flex-col justify-center">
                      {% comment %} quantity {% endcomment %}
                     <div class="flex items-center gap-2">
-                        <a href="{% url 'minus_from_cart' item.book_id.slug %}" class="w-8 h-8 border border-slate-200 rounded-md flex items-center justify-center">-</a>
+                        <a href="{% url 'minus_from_cart' item.book.slug %}" class="w-8 h-8 border border-slate-200 rounded-md flex items-center justify-center">-</a>
                         <span class="w-8 h-8 border border-slate-200 rounded-md flex items-center justify-center">{{ item.quantity }}</span>
-                        <a href="{% url 'add_to_cart' item.book_id.slug %}" class="w-8 h-8 border border-slate-200 rounded-md flex items-center justify-center">+</a>
+                        <a href="{% url 'add_to_cart' item.book.slug %}" class="w-8 h-8 border border-slate-200 rounded-md flex items-center justify-center">+</a>
                     </div>
                     {% comment %} remove {% endcomment %}
-                    <a href="{% url 'remove_from_cart' item.book_id.slug %}" class="text-red-500">Remove</a>
+                    <a href="{% url 'remove_from_cart' item.book.slug %}" class="text-red-500">Remove</a>
                 </div>
                 </div>
             {% endfor %}

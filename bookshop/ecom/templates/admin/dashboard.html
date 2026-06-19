@@ -36,11 +36,24 @@
         <table class=" w-full border mt-5">
             <thead>
                 <tr>
-                    <th class="border">ID</th>
-                    <th class="border">Name</th>
-                    <th class="border">Amount</th>
+                    <th class="border p-2">ID</th>
+                    <th class="border p-2">User</th>
+                    <th class="border p-2">Amount</th>
                 </tr>
             </thead>
+            <tbody>
+                {% for order in recent_orders %}
+                <tr>
+                    <td class="border p-2 text-center">{{ order.id }}</td>
+                    <td class="border p-2 text-center">{{ order.user.username }}</td>
+                    <td class="border p-2 text-center">₹{{ order.total_price }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="border p-2 text-center text-slate-500">No orders yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 

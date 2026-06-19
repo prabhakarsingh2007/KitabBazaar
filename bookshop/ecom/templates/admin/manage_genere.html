@@ -22,7 +22,7 @@
                 {% for genere in generes %}
                 <tr>
                     <td class="border p-3">{{genere.id}}</td>
-                    <td class="border p-3">{{genere.tittle}}</td>
+                    <td class="border p-3">{{genere.title}}</td>
                     <td class="border p-3">{{genere.description}}</td>
                     <td class="border p-3 flex justify-between gap-3">
                         <a href="{% url 'admin_edit_genere' genere.id %}"
