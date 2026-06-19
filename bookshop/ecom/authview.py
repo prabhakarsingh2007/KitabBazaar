@@ -1,13 +1,15 @@
 
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden
-from ecom.models import *
-from ecom.forms import * 
+from ecom.models import Genere, Author, Book, Coupon, Address, Order
+from ecom.forms import GenereForm, BookForm, AuthorForm, CouponForm, LoginForm, RegisterForm
 from functools import wraps
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.utils.text import slugify
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 def superuser_required(view_func):
     @wraps(view_func)
@@ -87,8 +89,8 @@ def manageBooks(req):
 
 @superuser_required
 def editBook(req, id):
-    book = Book.objects.get(id=id)
-    form = BookForm(req.POST or None, instance=book)
+    book = get_object_or_404(Book, id=id)
+    form = BookForm(req.POST or None, req.FILES or None, instance=book)
 
     if req.method == "POST":
         if form.is_valid():
@@ -100,7 +102,7 @@ def editBook(req, id):
 
 @superuser_required
 def editGenere(req, id):
-    genere = Genere.objects.get(id=id)
+    genere = get_object_or_404(Genere, id=id)
     form = GenereForm(req.POST or None, instance=genere)
 
     if req.method == "POST":
@@ -113,7 +115,7 @@ def editGenere(req, id):
 
 @superuser_required
 def editAuthor(req, id):
-    author = Author.objects.get(id=id)
+    author = get_object_or_404(Author, id=id)
     form = AuthorForm(req.POST or None, instance=author)
 
     if req.method == "POST":
@@ -127,17 +129,20 @@ def editAuthor(req, id):
 
 @superuser_required
 def deleteGenere(req, id):
-    Genere.objects.get(id=id).delete()
+    if req.method == "POST":
+        get_object_or_404(Genere, id=id).delete()
     return redirect("admin_manage_genere") 
 
 @superuser_required
 def deleteAuthor(req, id):
-    Author.objects.get(id=id).delete()
+    if req.method == "POST":
+        get_object_or_404(Author, id=id).delete()
     return redirect("admin_manage_author") 
 
 @superuser_required
 def deleteBook(req, id):
-    Book.objects.get(id=id).delete()
+    if req.method == "POST":
+        get_object_or_404(Book, id=id).delete()
     return redirect("admin_manage_book") 
 
 @superuser_required
@@ -184,7 +189,7 @@ def manageCoupons(req):
 
 @superuser_required
 def editCoupon(req, id):
-    coupon = Coupon.objects.get(id=id)
+    coupon = get_object_or_404(Coupon, id=id)
     form = CouponForm(req.POST or None, instance=coupon)
 
     if req.method == "POST":
@@ -195,7 +200,8 @@ def editCoupon(req, id):
 
 @superuser_required
 def deleteCoupon(req, id):
-    Coupon.objects.get(id=id).delete()
+    if req.method == "POST":
+        get_object_or_404(Coupon, id=id).delete()
     return redirect("admin_manage_coupon")
 
 
@@ -211,6 +217,8 @@ def login(req):
         if user is not None:
             auth_login(req, user)
             return redirect("home")
+        else:
+            form.add_error(None, "Invalid username or password.")
 
     return render(req, "auth/login.html", {"form": form})
 
@@ -221,9 +229,7 @@ def register(req):
 
     form = RegisterForm(req.POST or None)
     if req.method == "POST" and form.is_valid():
-        user = form.save(commit=False)
-        user.set_password(form.cleaned_data["password"])
-        user.save()
+        user = form.save()
         auth_login(req, user)
         return redirect("home")
 

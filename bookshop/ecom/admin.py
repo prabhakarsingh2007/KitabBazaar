@@ -17,6 +17,7 @@ admin.site.register(Author, AuthorAdmin)
 class BookAdmin(admin.ModelAdmin):
     list_display = ("title","price","discount_price","genere","author","isbn")
     prepopulated_fields = {"slug":("title",)}
+    list_select_related = ("author", "genere")
 admin.site.register(Book, BookAdmin)
 
 admin.site.register(Order)

@@ -81,7 +81,11 @@
                 <span class="text-sm text-slate-500">Total</span>
                 <span class="text-lg font-bold  text-slate-500">₹{{ order.get_total_payable_price }}</span>
             </div>
-            <button class="w-full bg-purple-500 text-white py-2 rounded-md mt-5">Proceed to Pay</button>
+            {% if addresses %}
+            <button type="submit" class="w-full bg-purple-500 text-white py-2 rounded-md mt-5 hover:bg-purple-600 transition">Proceed to Pay</button>
+            {% else %}
+            <button type="button" class="w-full bg-slate-300 text-slate-500 py-2 rounded-md mt-5 cursor-not-allowed" disabled>Please Add an Address to Pay</button>
+            {% endif %}
         </div>
 
     </div>

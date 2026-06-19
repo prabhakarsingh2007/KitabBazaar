@@ -1,11 +1,21 @@
 
 from django.contrib import admin
 from django.urls import path
-from ecom.views import *
 from django.conf import settings
 from django.conf.urls.static import static
-from ecom.authview import *
-from ecom.checkoutView import *
+
+from ecom.views import homepage, filter, book_view, cart
+from ecom.authview import (
+    dashboard, manageGenere, editGenere, deleteGenere,
+    manageCoupons, editCoupon, deleteCoupon,
+    manageAuthor, editAuthor, deleteAuthor,
+    manageBooks, editBook, deleteBook, insertBook,
+    login, register, logout
+)
+from ecom.checkoutView import (
+    addToCart, removeFromCart, minusFromCart,
+    checkout, applyCoupon, removeCoupon, addAddress, success
+)
 
 urlpatterns = [
     path('superadmin/', admin.site.urls),

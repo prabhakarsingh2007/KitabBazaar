@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 from decimal import Decimal
+from .validators import validate_image_extension
 
 # Create your models here.
 class Genere(models.Model):
     title = models.CharField(max_length=200)
-    slug = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -13,7 +14,7 @@ class Genere(models.Model):
     
 class Author(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     email = models.EmailField(null=True, blank=True)
     contact = models.CharField(max_length=20, null=True, blank=True)
 
@@ -22,15 +23,15 @@ class Author(models.Model):
 
 
 class Book(models.Model):
-    title = models.CharField(max_length=200)
-    slug = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, db_index=True)
+    slug = models.SlugField(max_length=200, unique=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     description = models.TextField()
     no_of_pages = models.IntegerField(default=0)
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="authors")
-    genere = models.ForeignKey(Genere, on_delete=models.CASCADE, related_name="category")
-    cover_image = models.ImageField(upload_to="books/cover")
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="books")
+    genere = models.ForeignKey(Genere, on_delete=models.CASCADE, related_name="books")
+    cover_image = models.ImageField(upload_to="books/cover", validators=[validate_image_extension])
     edition = models.CharField(max_length=50, default="Latest Edition")
     isbn = models.CharField(max_length=200)
 
@@ -70,7 +71,7 @@ class Payment(models.Model):
     payment_method = models.CharField(max_length=50)
     payment_date = models.DateTimeField(auto_now_add=True)
     mode = models.CharField(max_length=50)
-    trancation_id = models.CharField(max_length=100, null=True, blank=True)
+    transaction_id = models.CharField(max_length=100, null=True, blank=True)
 
 
     def __str__(self):
@@ -114,13 +115,22 @@ class Order(models.Model):
             return Decimal('0.00')
 
     def get_total_payable_price(self):
-        return self.get_total_price() + self.get_shipping_charge() + self.get_tax_price() - self.get_discount_amount()
+        raw_payable = self.get_total_price() + self.get_shipping_charge() + self.get_tax_price() - self.get_discount_amount()
+        return max(raw_payable, Decimal('0.00'))
 
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="order_items")
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=1)
+    quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(quantity__gt=0),
+                name="quantity_must_be_greater_than_zero"
+            )
+        ]
 
     def __str__(self):
         return f"OrderItem {self.order.id} - {self.book.title} - Quantity: {self.quantity}"

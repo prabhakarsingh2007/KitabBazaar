@@ -9,9 +9,9 @@
 
 
 
-    <div class="p-4 border-lg border-slate-200 flex h-fit gap-4">
+    <div class="p-4 rounded-lg border border-slate-200 flex h-fit gap-4">
         {% if user.is_authenticated %}
-         <a href="{% url 'home' %}" class="px-4">Hii, {{ request.user.first_name }}</a>
+         <a href="{% url 'home' %}" class="px-4">Hii, {{ request.user.first_name|default:request.user.username }}</a>
         <a href="{% url 'logout' %}" class="px-4">Logout</a>
        
         {% else %}
