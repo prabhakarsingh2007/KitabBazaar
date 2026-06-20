@@ -79,7 +79,7 @@ def insertBook(req):
 def manageBooks(req):
     data = {}
     
-    books = Book.objects.all()
+    books = Book.objects.select_related('author', 'genere').all().order_by('-id')
     # pagination work
     paginator = Paginator(books, 5)
     page_number = req.GET.get("page")
@@ -151,7 +151,7 @@ def deleteBook(req, id):
 def manageAuthor(req):
     data = {}
     form = AuthorForm(req.POST or None)
-    authors = Author.objects.all()
+    authors = Author.objects.annotate(book_count=Count('books')).all().order_by('-id')
 
     #pagination work
 
@@ -218,11 +218,32 @@ def login(req):
         user = authenticate(req, username=username, password=password)
         if user is not None:
             auth_login(req, user)
+            
+            # Merge session cart into database cart
+            session_cart = req.session.pop('cart', {})
+            if session_cart:
+                order, created = Order.objects.get_or_create(user=user, payment=None, defaults={"total_price": 0})
+                for slug, quantity in session_cart.items():
+                    try:
+                        book = Book.objects.get(slug=slug)
+                        order_item, item_created = OrderItem.objects.get_or_create(
+                            order=order, book=book, defaults={"quantity": quantity}
+                        )
+                        if not item_created:
+                            order_item.quantity += quantity
+                            order_item.save()
+                    except Book.DoesNotExist:
+                        pass
+
+            next_url = req.GET.get('next') or req.POST.get('next')
+            if next_url:
+                return redirect(next_url)
             return redirect("home")
         else:
             form.add_error(None, "Invalid username or password.")
 
-    return render(req, "auth/login.html", {"form": form})
+    next_url = req.GET.get('next', '') or req.POST.get('next', '')
+    return render(req, "auth/login.html", {"form": form, "next": next_url})
 
 
 def register(req):

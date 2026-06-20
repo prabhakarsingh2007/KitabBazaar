@@ -50,6 +50,40 @@
 
     </div>
 
+    <!-- Pagination -->
+    <div class="flex items-center justify-between p-4 mt-6 text-sm text-slate-500 border-t border-slate-200">
+        <div>
+            Showing <span class="font-semibold text-slate-800">{{ books.start_index }}</span> to 
+            <span class="font-semibold text-slate-800">{{ books.end_index }}</span> of 
+            <span class="font-semibold text-slate-800">{{ books.paginator.count }}</span> books.
+        </div>
+        <div class="flex items-center gap-2">
+            {% if books.has_previous %}
+            <a href="?page={{ books.previous_page_number }}" class="px-3 py-1.5 border border-slate-300 rounded bg-white text-slate-700 hover:bg-slate-50 transition">
+                Previous
+            </a>
+            {% else %}
+            <span class="px-3 py-1.5 border border-slate-200 rounded bg-slate-50 text-slate-400 cursor-not-allowed">
+                Previous
+            </span>
+            {% endif %}
+
+            <span class="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-medium">
+                Page {{ books.number }} of {{ books.paginator.num_pages }}
+            </span>
+
+            {% if books.has_next %}
+            <a href="?page={{ books.next_page_number }}" class="px-3 py-1.5 border border-slate-300 rounded bg-white text-slate-700 hover:bg-slate-50 transition">
+                Next
+            </a>
+            {% else %}
+            <span class="px-3 py-1.5 border border-slate-200 rounded bg-slate-50 text-slate-400 cursor-not-allowed">
+                Next
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
 </div>
 
 {% endblock %}

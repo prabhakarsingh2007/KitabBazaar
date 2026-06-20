@@ -37,7 +37,7 @@
                             <div class="text-slate-700">{{ author.email|default:"No email" }}</div>
                             <div class="text-xs text-slate-500 mt-0.5">{{ author.contact|default:"No contact number" }}</div>
                         </td>
-                        <td class="p-4 text-center font-bold text-slate-900">{{ author.books.count }}</td>
+                        <td class="p-4 text-center font-bold text-slate-900">{{ author.book_count }}</td>
                         <td class="p-4 text-right">
                             <div class="inline-flex items-center gap-2">
                                 <a href="{% url 'admin_edit_author' author.id %}" class="inline-flex items-center px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-semibold transition">

@@ -7,31 +7,55 @@ from .models import Book, Order, OrderItem, Payment, Address, Coupon
 from .forms import AddressForm
 
 
-@login_required
 def addToCart(req, slug):
-    if req.method == "POST":
-        book = get_object_or_404(Book, slug=slug)
-        if book.stock < 1:
-            messages.error(req, f"'{book.title}' is currently out of stock.")
-            return redirect("cart")
+    book = get_object_or_404(Book, slug=slug)
+    if book.stock < 1:
+        messages.error(req, f"'{book.title}' is currently out of stock.")
+        return redirect("cart")
 
-        order, created = Order.objects.get_or_create(user=req.user, payment=None, defaults={"total_price": 0})
-        order_item, item_created = OrderItem.objects.get_or_create(order=order, book=book, defaults={"quantity": 1})
+    if not req.user.is_authenticated:
+        if req.GET.get("buy_now") == "true" or req.POST.get("buy_now") == "true":
+            return redirect(f"/auth/login/?next=/checkout/add-to-cart/{slug}/?buy_now=true")
         
-        if not item_created:
-            if order_item.quantity + 1 > book.stock:
-                messages.error(req, f"Only {book.stock} copies of '{book.title}' are available in stock.")
-            else:
-                order_item.quantity += 1
-                order_item.save()
-                messages.success(req, f"Quantity of '{book.title}' increased.")
+        cart = req.session.get("cart", {})
+        quantity = cart.get(slug, 0)
+        if quantity + 1 > book.stock:
+            messages.error(req, f"Only {book.stock} copies of '{book.title}' are available in stock.")
         else:
+            cart[slug] = quantity + 1
+            req.session["cart"] = cart
             messages.success(req, f"'{book.title}' added to cart.")
+        return redirect("cart")
+
+    order, created = Order.objects.get_or_create(user=req.user, payment=None, defaults={"total_price": 0})
+    order_item, item_created = OrderItem.objects.get_or_create(order=order, book=book, defaults={"quantity": 1})
+    
+    if not item_created:
+        if order_item.quantity + 1 > book.stock:
+            messages.error(req, f"Only {book.stock} copies of '{book.title}' are available in stock.")
+        else:
+            order_item.quantity += 1
+            order_item.save()
+            messages.success(req, f"Quantity of '{book.title}' increased.")
+    else:
+        messages.success(req, f"'{book.title}' added to cart.")
+        
+    if req.GET.get("buy_now") == "true":
+        return redirect("checkout")
     return redirect("cart")
 
-@login_required
 def removeFromCart(req, slug):
     if req.method == "POST":
+        if not req.user.is_authenticated:
+            cart = req.session.get("cart", {})
+            if slug in cart:
+                del cart[slug]
+                req.session["cart"] = cart
+                book = Book.objects.filter(slug=slug).first()
+                title = book.title if book else slug
+                messages.success(req, f"'{title}' removed from cart.")
+            return redirect("cart")
+
         book = get_object_or_404(Book, slug=slug)
         order = Order.objects.filter(user=req.user, payment=None).first()
         if order:
@@ -39,9 +63,21 @@ def removeFromCart(req, slug):
             messages.success(req, f"'{book.title}' removed from cart.")
     return redirect("cart")
 
-@login_required
+
 def minusFromCart(req, slug):
     if req.method == "POST":
+        if not req.user.is_authenticated:
+            cart = req.session.get("cart", {})
+            if slug in cart:
+                if cart[slug] > 1:
+                    cart[slug] -= 1
+                    messages.success(req, "Quantity decreased.")
+                else:
+                    del cart[slug]
+                    messages.success(req, "Item removed from cart.")
+                req.session["cart"] = cart
+            return redirect("cart")
+
         book = get_object_or_404(Book, slug=slug)
         order = Order.objects.filter(user=req.user, payment=None).first()
         if order:
