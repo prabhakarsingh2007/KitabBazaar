@@ -63,10 +63,18 @@
                 <p>ISBN: {{ book.isbn }}</p>
                 <p>No of Pages: {{ book.no_of_pages }}</p>
                 <p>Edition: {{ book.edition }}</p>
+                <p>Availability: 
+                    {% if book.stock > 0 %}
+                        In stock ({{ book.stock }} copies)
+                    {% else %}
+                        <span class="text-red-600 font-semibold">Out of Stock</span>
+                    {% endif %}
+                </p>
             </div>
 
             <!-- Buttons -->
             <div class="flex gap-4 mt-6">
+                {% if book.stock > 0 %}
                 <form action="{% url 'add_to_cart' book.slug %}?buy_now=true" method="post" class="inline">
                     {% csrf_token %}
                     <button type="submit" class="px-5 py-2 bg-purple-700 text-white rounded-md hover:bg-purple-800 transition">
@@ -80,6 +88,11 @@
                         Add to Cart
                     </button>
                 </form>
+                {% else %}
+                <button class="px-5 py-2 bg-red-600 text-white rounded-md opacity-90 cursor-not-allowed" disabled>
+                    Out of Stock
+                </button>
+                {% endif %}
             </div>
         </div>
 
