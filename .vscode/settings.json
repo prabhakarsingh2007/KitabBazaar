@@ -1,6 +1,9 @@
 {
   "python.defaultInterpreterPath": "c:\\Users\\pks95\\Desktop\\ecommercebook\\server\\Scripts\\python.exe",
   "python.analysis.extraPaths": [
-    "./bookshop"
+    "${workspaceFolder}/bookshop"
+  ],
+  "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/bookshop"
   ]
 }

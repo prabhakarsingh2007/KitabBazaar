@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
+  <aside class="lg:col-span-1">
+    <div class="bg-white rounded-lg shadow-sm p-4">
+      <h3 class="text-lg font-semibold">Profile</h3>
+      <p class="text-sm text-slate-600 mt-2">{{ request.user.get_full_name }}</p>
+      <p class="text-sm text-slate-500">{{ request.user.email }}</p>
+    </div>
+  </aside>
+
+  <section class="lg:col-span-3">
+    <div class="bg-white rounded-lg shadow-sm p-4">
+      <h3 class="text-lg font-semibold">Recent Orders</h3>
+      <div class="mt-4 text-sm text-slate-500">No orders yet.</div>
+    </div>
+  </section>
+</div>
+{% endblock %}

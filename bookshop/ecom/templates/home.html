@@ -2,88 +2,79 @@
 
 {% block content %}
 
-<div class="w-full">
-    
-    <!-- Section Header -->
-    <div class="border-b border-slate-200 px-6 py-3">
-        <h2 class="text-2xl font-semibold text-slate-700">Recently Added</h2>
+<!-- Hero -->
+<section class="bg-gradient-to-r from-white via-indigo-50 to-white rounded-lg p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div class="md:col-span-2">
+            <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-800">Discover your next great read</h1>
+            <p class="mt-3 text-slate-600">Browse millions of books across genres. Fast delivery, great prices.</p>
+            <div class="mt-4 flex gap-3">
+                <a href="#" class="bg-brand-500 text-white px-4 py-2 rounded-md shadow hover:bg-brand-600">Shop Bestsellers</a>
+                <a href="#" class="border border-slate-200 px-4 py-2 rounded-md text-slate-700 hover:bg-slate-100">New Releases</a>
+            </div>
+        </div>
+        <div class="hidden md:flex justify-end">
+            {% if books and books.0.cover_image %}
+                <img src="{{ books.0.cover_image.url }}" alt="Books" class="w-48 h-48 object-contain"/>
+            {% else %}
+                <img src="https://via.placeholder.com/200x200?text=Books" alt="Books" class="w-48 h-48 object-contain"/>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Product grid -->
+<section>
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-slate-800">Recently Added</h2>
+        <div class="text-sm text-slate-500">Showing <span class="font-medium">{{ books.start_index }}</span>–<span class="font-medium">{{ books.end_index }}</span> of <span class="font-medium">{{ books.paginator.count }}</span></div>
     </div>
 
-    <!-- Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4">
-        
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {% for book in books %}
-        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition">
-            
-            <!-- Image -->
-            <img src="{{ book.cover_image.url }}" class="w-full h-80 object-contain">
-
-            <!-- Content -->
-            <div class="p-3">
-                <h3 class="text-md font-semibold text-gray-800 line-clamp-1">
-                    {{ book.title }}
-                </h3>
-                <p class="text-md text-gray-500 mb-2">
-                    {{ book.author }}
-                </p>
-
-                <!-- Price + Action -->
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm font-bold text-gray-800">
-                            ₹ {{ book.discount_price }}
-                        </p>
-                        <p class="text-xs text-gray-400 line-through">
-                            ₹ {{ book.price }}
-                        </p>
-                    </div>
-
-                    <a href="{% url 'book_view' book.slug %}" 
-                       class="text-xs text-blue-600 hover:underline">
-                        View
-                    </a>
+        <div class="bg-white shadow-sm rounded-lg overflow-hidden transform hover:-translate-y-1 transition">
+            <a href="{% url 'book_view' book.slug %}" class="block p-3">
+                <div class="h-48 flex items-center justify-center bg-gray-50 rounded-md">
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="max-h-40 object-contain" />
                 </div>
-            </div>
-
+                <h3 class="mt-3 text-sm font-semibold text-slate-800 line-clamp-2">{{ book.title }}</h3>
+                <p class="text-xs text-slate-500">{{ book.author.name }}</p>
+                <div class="mt-2 flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-bold text-slate-800">₹ {{ book.discount_price|default:book.price }}</div>
+                        {% if book.discount_price %}<div class="text-xs text-slate-400 line-through">₹ {{ book.price }}</div>{% endif %}
+                    </div>
+                    {% if book.stock > 0 %}
+                        <span class="text-xs text-green-600 font-semibold">In stock</span>
+                    {% else %}
+                        <span class="text-xs text-red-600 font-semibold">Out of stock</span>
+                    {% endif %}
+                </div>
+            </a>
         </div>
         {% endfor %}
-
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between p-4 mt-6 text-sm text-slate-500 border-t border-slate-200">
-        <div>
-            Showing <span class="font-semibold text-slate-800">{{ books.start_index }}</span> to 
-            <span class="font-semibold text-slate-800">{{ books.end_index }}</span> of 
-            <span class="font-semibold text-slate-800">{{ books.paginator.count }}</span> books.
-        </div>
+    <div class="flex items-center justify-between p-4 mt-6 text-sm text-slate-500">
+        <div></div>
         <div class="flex items-center gap-2">
             {% if books.has_previous %}
-            <a href="?page={{ books.previous_page_number }}" class="px-3 py-1.5 border border-slate-300 rounded bg-white text-slate-700 hover:bg-slate-50 transition">
-                Previous
-            </a>
+            <a href="?page={{ books.previous_page_number }}" class="px-3 py-1.5 border border-slate-300 rounded bg-white text-slate-700 hover:bg-slate-50 transition">Previous</a>
             {% else %}
-            <span class="px-3 py-1.5 border border-slate-200 rounded bg-slate-50 text-slate-400 cursor-not-allowed">
-                Previous
-            </span>
+            <span class="px-3 py-1.5 border border-slate-200 rounded bg-slate-50 text-slate-400">Previous</span>
             {% endif %}
 
-            <span class="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-medium">
-                Page {{ books.number }} of {{ books.paginator.num_pages }}
-            </span>
+            <span class="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded text-slate-700 font-medium">Page {{ books.number }} of {{ books.paginator.num_pages }}</span>
 
             {% if books.has_next %}
-            <a href="?page={{ books.next_page_number }}" class="px-3 py-1.5 border border-slate-300 rounded bg-white text-slate-700 hover:bg-slate-50 transition">
-                Next
-            </a>
+            <a href="?page={{ books.next_page_number }}" class="px-3 py-1.5 border border-slate-300 rounded bg-white text-slate-700 hover:bg-slate-50 transition">Next</a>
             {% else %}
-            <span class="px-3 py-1.5 border border-slate-200 rounded bg-slate-50 text-slate-400 cursor-not-allowed">
-                Next
-            </span>
+            <span class="px-3 py-1.5 border border-slate-200 rounded bg-slate-50 text-slate-400">Next</span>
             {% endif %}
         </div>
     </div>
 
-</div>
+</section>
 
 {% endblock %}

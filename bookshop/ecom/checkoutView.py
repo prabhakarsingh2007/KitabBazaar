@@ -160,7 +160,6 @@ def addAddress(req):
         return redirect("checkout")
     return render(req, "add_address.html", {"form": form}) 
 
-@login_required
 def applyCoupon(req):
     if req.method == "POST":
         code = req.POST.get("code")
@@ -172,24 +171,33 @@ def applyCoupon(req):
             valid_to__gte=now
         ).first()
         if coupon:
-            order = Order.objects.filter(user=req.user, payment=None).first()
-            if order:
-                order.coupon = coupon
-                order.save()
+            if not req.user.is_authenticated:
+                req.session["coupon_code"] = code
                 messages.success(req, "Coupon applied successfully!")
             else:
-                messages.error(req, "No active order found.")
+                order = Order.objects.filter(user=req.user, payment=None).first()
+                if order:
+                    order.coupon = coupon
+                    order.save()
+                    messages.success(req, "Coupon applied successfully!")
+                else:
+                    messages.error(req, "No active order found.")
         else:
             messages.error(req, "Invalid or expired coupon code.")
     return redirect("cart")
 
-@login_required
+
 def removeCoupon(req):
-    order = Order.objects.filter(user=req.user, payment=None).first()
-    if order:
-        order.coupon = None
-        order.save()
+    if not req.user.is_authenticated:
+        if "coupon_code" in req.session:
+            del req.session["coupon_code"]
         messages.success(req, "Coupon removed.")
+    else:
+        order = Order.objects.filter(user=req.user, payment=None).first()
+        if order:
+            order.coupon = None
+            order.save()
+            messages.success(req, "Coupon removed.")
     return redirect("cart")
 
 

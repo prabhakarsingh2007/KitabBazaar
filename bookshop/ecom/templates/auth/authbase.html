@@ -1,27 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Auth | Bookshop{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-    {% include 'auth/authheader.html' %}
+{% extends "base.html" %}
 
-    {% if messages %}
-    <div class="max-w-7xl mx-auto px-6 mt-4">
-        {% for message in messages %}
-        <div class="p-4 mb-3 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}" role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+{% block title %}Auth | Bookshop{% endblock %}
 
-    <div class="max-w-7xl mx-auto px-6 mt-4">
-        {% block content %}
-        {% endblock %}
-    </div>
-</body>
-</html>
+{% block content %}
+    {% block auth_content %}{% endblock %}
+{% endblock %}

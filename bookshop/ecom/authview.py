@@ -7,7 +7,7 @@ from functools import wraps
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from django.utils.text import slugify
+from ecom.utils import generate_unique_slug
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
@@ -54,7 +54,7 @@ def manageGenere(req):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = slugify(data.title)
+            data.slug = generate_unique_slug(Genere, data.title)
             data.save()
             return redirect("admin_manage_genere")
     return render(req, "admin/manage_genere.html", data)
@@ -68,7 +68,7 @@ def insertBook(req):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = slugify(data.title)
+            data.slug = generate_unique_slug(Book, data.title)
             data.save()
             return redirect("admin_manage_book")
     return render(req, "admin/insert_book.html",data)
@@ -97,7 +97,7 @@ def editBook(req, id):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = slugify(data.title)
+            data.slug = generate_unique_slug(Book, data.title, instance_id=book.id)
             data.save()
             return redirect("admin_manage_book")
     return render(req, "admin/edit_book.html",{"form":form}) 
@@ -110,7 +110,7 @@ def editGenere(req, id):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = slugify(data.title)
+            data.slug = generate_unique_slug(Genere, data.title, instance_id=genere.id)
             data.save()
             return redirect("admin_manage_genere")
     return render(req, "admin/edit_genere.html",{"form": form})
@@ -123,7 +123,7 @@ def editAuthor(req, id):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = slugify(data.name)
+            data.slug = generate_unique_slug(Author, data.name, instance_id=author.id)
             data.save()
             return redirect("admin_manage_author")
     return render(req, "admin/edit_author.html", {"form":form})
@@ -164,7 +164,7 @@ def manageAuthor(req):
     if req.method == "POST":
         if form.is_valid():
             data = form.save(commit=False)
-            data.slug = slugify(data.name)
+            data.slug = generate_unique_slug(Author, data.name)
             data.save()
             return redirect("admin_manage_author")
     return render(req, "admin/manage_author.html",data)
@@ -221,18 +221,30 @@ def login(req):
             
             # Merge session cart into database cart
             session_cart = req.session.pop('cart', {})
-            if session_cart:
+            session_coupon_code = req.session.pop('coupon_code', None)
+            
+            if session_cart or session_coupon_code:
                 order, created = Order.objects.get_or_create(user=user, payment=None, defaults={"total_price": 0})
-                for slug, quantity in session_cart.items():
+                
+                if session_cart:
+                    for slug, quantity in session_cart.items():
+                        try:
+                            book = Book.objects.get(slug=slug)
+                            order_item, item_created = OrderItem.objects.get_or_create(
+                                order=order, book=book, defaults={"quantity": quantity}
+                            )
+                            if not item_created:
+                                order_item.quantity += quantity
+                                order_item.save()
+                        except Book.DoesNotExist:
+                            pass
+                
+                if session_coupon_code:
                     try:
-                        book = Book.objects.get(slug=slug)
-                        order_item, item_created = OrderItem.objects.get_or_create(
-                            order=order, book=book, defaults={"quantity": quantity}
-                        )
-                        if not item_created:
-                            order_item.quantity += quantity
-                            order_item.save()
-                    except Book.DoesNotExist:
+                        coupon = Coupon.objects.get(code=session_coupon_code, active=True)
+                        order.coupon = coupon
+                        order.save()
+                    except Coupon.DoesNotExist:
                         pass
 
             next_url = req.GET.get('next') or req.POST.get('next')
@@ -288,10 +300,19 @@ def orderDetail(req, id):
     
     if req.method == "POST":
         new_status = req.POST.get("status")
+        delivery_date_str = req.POST.get("delivery_date")
+        
         if new_status in dict(Order.STATUS_CHOICES):
             order.status = new_status
-            order.save()
-            return redirect("admin_order_detail", id=id)
+            
+        if delivery_date_str:
+            order.delivery_date = delivery_date_str
+        else:
+            order.delivery_date = None
+            
+        order.save()
+        messages.success(req, "Order updated successfully.")
+        return redirect("admin_order_detail", id=id)
             
     return render(req, "admin/order_detail.html", {"order": order, "status_choices": Order.STATUS_CHOICES})
 

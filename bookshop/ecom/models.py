@@ -6,7 +6,7 @@ from .validators import validate_image_extension
 # Create your models here.
 class Genere(models.Model):
     title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=200, unique=True, allow_unicode=True)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
@@ -14,7 +14,7 @@ class Genere(models.Model):
     
 class Author(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=200, unique=True, allow_unicode=True)
     email = models.EmailField(null=True, blank=True)
     contact = models.CharField(max_length=20, null=True, blank=True)
 
@@ -24,7 +24,7 @@ class Author(models.Model):
 
 class Book(models.Model):
     title = models.CharField(max_length=200, db_index=True)
-    slug = models.SlugField(max_length=200, unique=True)
+    slug = models.SlugField(max_length=200, unique=True, allow_unicode=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     description = models.TextField()
@@ -94,6 +94,7 @@ class Order(models.Model):
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     address = models.ForeignKey(Address, on_delete=models.CASCADE, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    delivery_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"Order {self.user.username} - {self.total_price}"

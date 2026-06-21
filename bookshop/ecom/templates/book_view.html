@@ -20,79 +20,50 @@
 
         <!-- Image -->
         <div class="md:col-span-2">
-            <div class="bg-white p-4 flex items-center justify-center">
-                <img src="{{ book.cover_image.url }}" 
-                     class="h-72 object-contain">
+            <div class="bg-white p-6 rounded-lg shadow-sm">
+                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="w-full h-[420px] object-contain" />
             </div>
         </div>
 
         <!-- Details -->
-        <div class="md:col-span-4 p-2">
-            <h2 class="text-2xl font-semibold text-gray-800 capitalize">
-                {{ book.title }}
-            </h2>
+        <div class="md:col-span-4 p-4">
+            <h1 class="text-2xl font-extrabold text-slate-800">{{ book.title }}</h1>
+            <p class="text-sm text-slate-500 mt-1">by <span class="font-medium">{{ book.author.name }}</span></p>
+            <p class="text-sm text-slate-500 mt-1">Category: <span class="font-medium">{{ book.genere.title }}</span></p>
 
-            <p class="text-sm text-slate-500 mt-1">
-                Author: {{ book.author }}
-            </p>
+            <div class="mt-4 text-sm text-slate-600 leading-relaxed">{{ book.description }}</div>
 
-            <p class="text-sm text-slate-500 mt-2">
-                Genre: {{ book.genere }}
-            </p>
+            <div class="mt-6 flex items-center gap-6">
+                <div>
+                    <div class="text-3xl font-extrabold text-slate-800">₹ {{ book.discount_price|default:book.price }}</div>
+                    {% if book.discount_price %}<div class="text-sm text-slate-400 line-through">₹ {{ book.price }}</div>{% endif %}
+                </div>
 
-            <!-- Description -->
-            <p class="text-sm text-slate-600 mt-4 leading-relaxed">
-                {{ book.description }}
-            </p>
-
-            <!-- Price -->
-            <div class="flex items-center gap-3 mt-4">
-                <p class="text-3xl font-semibold text-purple-700">
-                    ₹ {{ book.discount_price|default:book.price }}
-                </p>
-
-                {% if book.discount_price %}
-                <p class="text-lg line-through text-slate-400">
-                    ₹ {{ book.price }}
-                </p>
-                {% endif %}
-            </div>
-
-            <!-- Extra Info -->
-            <div class="mt-4 space-y-1 text-sm text-slate-500">
-                <p>ISBN: {{ book.isbn }}</p>
-                <p>No of Pages: {{ book.no_of_pages }}</p>
-                <p>Edition: {{ book.edition }}</p>
-                <p>Availability: 
+                <div>
                     {% if book.stock > 0 %}
-                        In stock ({{ book.stock }} copies)
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 text-sm font-semibold">In stock ({{ book.stock }})</span>
                     {% else %}
-                        <span class="text-red-600 font-semibold">Out of Stock</span>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-red-50 text-red-700 text-sm font-semibold">Out of stock</span>
                     {% endif %}
-                </p>
+                </div>
             </div>
 
-            <!-- Buttons -->
-            <div class="flex gap-4 mt-6">
+            <div class="mt-6 flex gap-3">
                 {% if book.stock > 0 %}
-                <form action="{% url 'add_to_cart' book.slug %}?buy_now=true" method="post" class="inline">
+                <form action="{% url 'add_to_cart' book.slug %}" method="post" class="flex gap-2 items-center">
                     {% csrf_token %}
-                    <button type="submit" class="px-5 py-2 bg-purple-700 text-white rounded-md hover:bg-purple-800 transition">
-                        Buy Now
-                    </button>
-                </form>
-
-                <form action="{% url 'add_to_cart' book.slug %}" method="post" class="inline">
-                    {% csrf_token %}
-                    <button type="submit" class="px-5 py-2 bg-slate-200 text-slate-700 rounded-md hover:bg-slate-300 transition">
-                        Add to Cart
-                    </button>
+                    <button type="submit" class="bg-brand-500 text-white px-5 py-2 rounded-md hover:bg-brand-600 transition">Add to Cart</button>
+                    <button formaction="{% url 'add_to_cart' book.slug %}?buy_now=true" formmethod="post" class="bg-slate-100 text-slate-700 px-4 py-2 rounded-md hover:bg-slate-200 transition">Buy Now</button>
                 </form>
                 {% else %}
-                <button class="px-5 py-2 bg-red-600 text-white rounded-md opacity-90 cursor-not-allowed" disabled>
-                    Out of Stock
-                </button>
+                <button class="bg-red-100 text-red-700 px-5 py-2 rounded-md cursor-not-allowed" disabled>Out of Stock</button>
                 {% endif %}
+            </div>
+
+            <div class="mt-6 text-sm text-slate-500">
+                <p>ISBN: <span class="font-medium">{{ book.isbn }}</span></p>
+                <p>No of Pages: <span class="font-medium">{{ book.no_of_pages }}</span></p>
+                <p>Edition: <span class="font-medium">{{ book.edition }}</span></p>
             </div>
         </div>
 
@@ -108,43 +79,25 @@
     </h3>
 
    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 p-4">
-        
         {% for book in related_books %}
-        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden hover:shadow-md transition">
-            
-            <!-- Image -->
-            <img src="{{ book.cover_image.url }}" class="w-full h-80 object-contain">
-
-            <!-- Content -->
-            <div class="p-3">
-                <h3 class="text-md font-semibold text-gray-800 line-clamp-1">
-                    {{ book.title }}
-                </h3>
-                <p class="text-md text-gray-500 mb-2">
-                    {{ book.author }}
-                </p>
-
-                <!-- Price + Action -->
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm font-bold text-gray-800">
-                            ₹ {{ book.discount_price }}
-                        </p>
-                        <p class="text-xs text-gray-400 line-through">
-                            ₹ {{ book.price }}
-                        </p>
-                    </div>
-
-                    <a href="{% url 'book_view' book.slug %}" 
-                       class="text-xs text-blue-600 hover:underline">
-                        View
-                    </a>
+        <div class="bg-white shadow-sm rounded-lg overflow-hidden hover:-translate-y-1 transition">
+            <a href="{% url 'book_view' book.slug %}" class="block p-3">
+                <div class="h-44 flex items-center justify-center bg-gray-50 rounded-md">
+                    <img src="{{ book.cover_image.url }}" class="max-h-40 object-contain" />
                 </div>
-            </div>
-
+                <h3 class="mt-2 text-sm font-semibold text-slate-800 line-clamp-2">{{ book.title }}</h3>
+                <p class="text-xs text-slate-500">{{ book.author.name }}</p>
+                <div class="mt-2 flex items-center justify-between">
+                    <div class="text-sm font-bold">₹ {{ book.discount_price|default:book.price }}</div>
+                    {% if book.stock > 0 %}
+                    <span class="text-xs text-green-600">In stock</span>
+                    {% else %}
+                    <span class="text-xs text-red-600">Out of stock</span>
+                    {% endif %}
+                </div>
+            </a>
         </div>
         {% endfor %}
-
     </div>
 
 </div>

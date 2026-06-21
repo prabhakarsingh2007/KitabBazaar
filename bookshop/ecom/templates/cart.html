@@ -7,115 +7,72 @@
     <div class="border-b border-slate-200 px-5 py-2">
         <h2 class="text-xl font-normal text-slate-700">My Cart</h2>
     </div>
-    {% if order %}
-    <div class="flex gap-6">
-        <div class="w-9/12">
-        <div class="flex flex-col gap-3 mt-5">
-            {% for item in cart_items %}
-                <div class="flex gap-3 justify-between bg-slate-50 px-3 py-2">
-                    {% comment %} product iage {% endcomment %}
-                   <div class="flex gap-3">
 
-                      <div class="w-24 h-24">
-                        <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-full h-full object-cover">
-                    </div>
-                    {% comment %} product details {% endcomment %}
-                    <div class="flex flex-col">
-                        <h3 class="text-lg font-medium text-slate-700">{{ item.book.title }}</h3>
+    {% if order %}
+    <div class="grid grid-cols-1 lg:grid-cols-8 gap-6 mt-6">
+        <div class="lg:col-span-5">
+            <div class="space-y-4">
+                {% for item in cart_items %}
+                <div class="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4">
+                    <img src="{{ item.book.cover_image.url }}" alt="{{ item.book.title }}" class="w-24 h-28 object-contain bg-gray-50 rounded" />
+                    <div class="flex-1">
+                        <a href="{% url 'book_view' item.book.slug %}" class="text-lg font-semibold text-slate-800">{{ item.book.title }}</a>
                         <p class="text-sm text-slate-500">{{ item.book.author.name }}</p>
                         <p class="text-sm text-slate-500">{{ item.book.genere.title }}</p>
-                        <p class="text-sm text-slate-500"><del class="">₹{{ item.book.price }}</del>
-                                                            <span class="">₹{{ item.book.discount_price }}</span>
-                        </p>
+                        <div class="mt-2 flex items-center gap-4">
+                            <div class="text-sm font-bold">₹{{ item.book.discount_price|default:item.book.price }}</div>
+                            <div class="text-xs text-slate-400 line-through">₹{{ item.book.price }}</div>
+                        </div>
                     </div>
 
-                </div>
-                   <div class="flex gap-5 flex-col justify-center">
-                     {% comment %} quantity {% endcomment %}
-                    <div class="flex items-center gap-2">
-                        <form action="{% url 'minus_from_cart' item.book.slug %}" method="post" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="w-8 h-8 border border-slate-200 rounded-md flex items-center justify-center hover:bg-slate-100 transition">-</button>
-                        </form>
-                        <span class="w-8 h-8 border border-slate-200 rounded-md flex items-center justify-center">{{ item.quantity }}</span>
-                        <form action="{% url 'add_to_cart' item.book.slug %}" method="post" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="w-8 h-8 border border-slate-200 rounded-md flex items-center justify-center hover:bg-slate-100 transition">+</button>
-                        </form>
+                    <div class="flex flex-col items-end gap-3">
+                        <div class="flex items-center gap-2">
+                            <form action="{% url 'minus_from_cart' item.book.slug %}" method="post">{% csrf_token %}<button class="w-8 h-8 border rounded">-</button></form>
+                            <div class="px-3 py-1 border rounded">{{ item.quantity }}</div>
+                            <form action="{% url 'add_to_cart' item.book.slug %}" method="post">{% csrf_token %}<button class="w-8 h-8 border rounded">+</button></form>
+                        </div>
+                        <form action="{% url 'remove_from_cart' item.book.slug %}" method="post">{% csrf_token %}<button class="text-red-500 text-sm">Remove</button></form>
                     </div>
-                    {% comment %} remove {% endcomment %}
-                    <form action="{% url 'remove_from_cart' item.book.slug %}" method="post" class="inline">
-                        {% csrf_token %}
-                        <button type="submit" class="text-red-500 hover:text-red-700 hover:underline text-left">Remove</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <aside class="lg:col-span-3">
+            <div class="bg-white rounded-lg shadow-sm p-5">
+                <h3 class="text-lg font-medium text-slate-700">Order Summary</h3>
+                <div class="mt-4 space-y-2 text-sm text-slate-600">
+                    <div class="flex justify-between"><span>Subtotal</span><span>₹{{ order.get_total_price }}</span></div>
+                    <div class="flex justify-between"><span>Shipping</span><span>{% if order.get_shipping_charge > 0 %}₹{{ order.get_shipping_charge }}{% else %}<span class="text-green-600 font-semibold">Free</span>{% endif %}</span></div>
+                    <div class="flex justify-between"><span>Tax</span><span>₹{{ order.get_tax_price }}</span></div>
+                    <div class="flex justify-between text-green-600 font-semibold"><span>Discount</span><span>₹{{ order.get_discount_amount }}</span></div>
+                    <div class="flex justify-between mt-3 font-bold text-slate-800"><span>Total</span><span>₹{{ order.get_total_payable_price }}</span></div>
+                </div>
+
+                <div class="mt-4">
+                    <a href="{% url 'checkout' %}" class="block text-center bg-brand-500 text-white py-2 rounded-md">Proceed to Checkout</a>
+                </div>
+
+                <div class="mt-4">
+                    {% if order.coupon_id %}
+                    <div class="p-3 bg-green-50 border border-green-100 rounded text-sm text-green-700">Coupon: {{ order.coupon.code }} — ₹{{ order.coupon.discount_amount }} <a href="{% url 'remove_coupon' %}" class="text-red-500 ml-2">Remove</a></div>
+                    {% else %}
+                    <form action="{% url 'apply_coupon' %}" method="post" class="flex gap-2">{% csrf_token %}
+                        <input type="text" name="code" placeholder="Coupon code" class="w-full border rounded px-3 py-2">
+                        <button class="bg-green-500 text-white px-3 py-2 rounded">Apply</button>
                     </form>
+                    {% endif %}
                 </div>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-    <div class="w-3/12">
-        <div class="border border-slate-200 p-5">
-            <h3 class="text-lg font-medium text-slate-700">Order Summary</h3>
-            <div class="flex justify-between">
-                <span class="text-sm text-slate-500">Subtotal</span>
-                <span class="text-sm text-slate-500">₹{{ order.get_total_price }}</span>
             </div>
-            <div class="flex justify-between">
-                <span class="text-sm text-slate-500">Shipping</span>
-                <span class="text-sm text-slate-500">
-                    {% if order.get_shipping_charge > 0 %} 
-                            ₹{{ order.get_shipping_charge }} 
-                    {% else %} 
-                            <span class="text-green-600 font-semibold">Free</span> 
-                    {% endif %}</span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-sm text-slate-500">Tax</span>
-                <span class="text-sm text-slate-500">₹{{ order.get_tax_price }}</span>
-            </div>
-            <div class="flex justify-between text-green-600 font-semibold">
-                <span class="text-sm">Discount</span>
-                <span class="text-sm">₹{{ order.get_discount_amount }}</span>
-            </div>
-            <div class="flex justify-between">
-                <span class="text-sm text-slate-500">Total</span>
-                <span class="text-sm text-slate-500">₹{{ order.get_total_payable_price }}</span>
-            </div>
-            
-            <div class="mt-5">
-                <a href="{% url 'checkout' %}" class="w-full bg-blue-500 text-white py-2 rounded-md text-center block">Checkout</a>
-            </div>
-
-            {% if order.coupon_id %}
-
-                <div class="mt-5 p-3 bg-green-50 border border-green-200 rounded">
-                    <p class="text-sm text-green-600">Coupon Applied: <span class="font-medium">{{ order.coupon.code }}</span></p>
-                    <p class="text-sm text-green-600">Discount Amount: ₹{{ order.coupon.discount_amount }}</p>
-                    <a href="{% url 'remove_coupon' %}" class="text-red-500 text-sm">Remove Coupon</a>
-                </div>
-
-            {% else %}
-            {#  coupon  #}
-                <form action="{% url 'apply_coupon' %}" method="post" class="mt-5">
-                    {% csrf_token %}
-                    <div class="flex gap-2">
-                        <input type="text" name="code" placeholder="Enter Coupon Code" class="w-full border border-slate-200 rounded-md px-3 py-2">
-                        <button type="submit" class="bg-green-500 text-white px-3 py-2 rounded-md">Apply</button>
-                    </div>
-                </form>
-            {% endif %}
-        </div>
-
+        </aside>
     </div>
     {% else %}
-    <div class="mt-5 flex flex-col gap-5 items-center justify-center">
-        <h1 class="text-6xl font-medium text-slate-700">Your cart is empty.</h1>
-        <a href="{% url 'home' %}" class="text-blue-500">Continue Shopping</a>
+    <div class="mt-12 text-center">
+        <img src="/static/empty-cart.svg" class="mx-auto w-40 h-40 opacity-60" />
+        <h2 class="text-2xl font-semibold text-slate-700 mt-4">Your cart is empty</h2>
+        <a href="{% url 'home' %}" class="text-brand-500 mt-2 inline-block">Continue shopping</a>
     </div>
-
     {% endif %}
 </div>
-</div>
-
 
 {% endblock %}

@@ -4,7 +4,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 
-from ecom.views import homepage, filter, book_view, cart
+from ecom.views import homepage, filter, book_view, cart, profile_view, user_order_detail
 from ecom.authview import (
     dashboard, manageGenere, editGenere, deleteGenere,
     manageCoupons, editCoupon, deleteCoupon,
@@ -48,6 +48,8 @@ urlpatterns = [
     path("filter/<slug:slug>/", filter, name="category_filter"),
     path("book-view/<slug:slug>/",book_view, name="book_view"),
     path("cart/", cart, name="cart"),
+    path("profile/", profile_view, name="profile"),
+    path("orders/<int:id>/", user_order_detail, name="user_order_detail"),
 
     # auth pages
     path("auth/login/", login, name="login"),

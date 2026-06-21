@@ -1,27 +1,162 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="antialiased bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Bookshop{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            500: '#6d28d9',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html,body{font-family:Inter,ui-sans-serif,system-ui;}
+        .toast-enter{transform:translateY(-8px);opacity:0}
+        .toast-enter-active{transform:none;opacity:1;transition:all .25s ease}
+        .ui-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+        .ui-form select,
+        .ui-form textarea{
+            width:100%;
+            border-radius:0.75rem;
+            border:1px solid rgb(226 232 240);
+            background:#fff;
+            padding:0.8rem 1rem;
+            color:rgb(15 23 42);
+            transition:all .2s ease;
+            outline:none;
+        }
+        .ui-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):focus,
+        .ui-form select:focus,
+        .ui-form textarea:focus{
+            border-color:rgb(109 40 217);
+            box-shadow:0 0 0 4px rgba(109,40,217,.10);
+        }
+        .ui-form label{display:block;font-size:.875rem;font-weight:600;color:rgb(51 65 85);margin-bottom:.35rem;}
+        .ui-form .errorlist{margin:.35rem 0 0;padding:0;list-style:none;color:rgb(185 28 28);font-size:.75rem;line-height:1.4;}
+        .ui-form .helptext{display:block;margin-top:.35rem;color:rgb(100 116 139);font-size:.75rem;}
+        .ui-form .field-row{margin-bottom:1rem;}
+        .ui-loading{pointer-events:none;opacity:.75}
+    </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
     {% include 'header.html' %}
 
-    {% if messages %}
-    <div class="max-w-7xl mx-auto px-6 mt-4">
-        {% for message in messages %}
-        <div class="p-4 mb-3 text-sm rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}" role="alert">
-            {{ message }}
+    <main class="flex-1 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+            {% block content %}{% endblock %}
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+    </main>
 
-    <div class="max-w-7xl mx-auto px-6 mt-4">
-        {% block content %}
-        {% endblock %}
-    </div>
+    {% include 'footer.html' %}
+
+    <!-- Toast container -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-2"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
+    <script>
+        function showToast(message, type='info'){
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'toast-enter inline-flex items-center gap-3 px-4 py-3 rounded-lg shadow-md text-sm';
+            if(type==='error') el.classList.add('bg-red-50','text-red-700');
+            else if(type==='success') el.classList.add('bg-green-50','text-green-700');
+            else el.classList.add('bg-slate-50','text-slate-700');
+            el.innerText = message;
+            container.appendChild(el);
+            setTimeout(()=>{ el.remove(); }, 4000);
+        }
+
+        function enhanceForms(root=document){
+            root.querySelectorAll('form').forEach((form)=>{
+                form.classList.add('ui-form');
+
+                form.querySelectorAll('input, select, textarea').forEach((field)=>{
+                    const type = (field.getAttribute('type') || '').toLowerCase();
+                    if (type === 'hidden' || type === 'checkbox' || type === 'radio') return;
+                    if (!field.classList.contains('tw-enhanced')) {
+                        field.classList.add('tw-enhanced');
+                    }
+                });
+
+                form.querySelectorAll('button[type="submit"], input[type="submit"]').forEach((button)=>{
+                    if (!button.classList.contains('tw-submit')) {
+                        button.classList.add('tw-submit');
+                    }
+                });
+            });
+        }
+
+        function attachPasswordToggles(root=document){
+            root.querySelectorAll('input[type="password"]').forEach((input)=>{
+                if (input.dataset.toggleReady === '1') return;
+                input.dataset.toggleReady = '1';
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'relative';
+                input.parentNode.insertBefore(wrapper, input);
+                wrapper.appendChild(input);
+
+                const toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.textContent = 'Show';
+                toggle.className = 'absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-500 hover:text-slate-800 transition';
+                toggle.addEventListener('click', () => {
+                    const isPassword = input.type === 'password';
+                    input.type = isPassword ? 'text' : 'password';
+                    toggle.textContent = isPassword ? 'Hide' : 'Show';
+                });
+
+                wrapper.appendChild(toggle);
+            });
+        }
+
+        function attachLoadingState(root=document){
+            root.querySelectorAll('form').forEach((form)=>{
+                form.addEventListener('submit', () => {
+                    form.classList.add('ui-loading');
+                    const button = form.querySelector('button[type="submit"], input[type="submit"]');
+                    if (!button) return;
+                    if (button.dataset.originalText === undefined) {
+                        button.dataset.originalText = button.textContent || button.value || '';
+                    }
+                    if (button.tagName === 'BUTTON') {
+                        button.textContent = 'Loading...';
+                    } else {
+                        button.value = 'Loading...';
+                    }
+                    button.disabled = true;
+                });
+            });
+        }
+
+        // Display Django messages as toasts
+        document.addEventListener('DOMContentLoaded', ()=>{
+            enhanceForms();
+            attachPasswordToggles();
+            attachLoadingState();
+            {% if messages %}
+                {% for message in messages %}
+                    showToast("{{ message|escapejs }}", "{% if 'error' in message.tags %}error{% elif 'success' in message.tags %}success{% else %}info{% endif %}");
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
 </body>
 </html>

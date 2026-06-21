@@ -1,4 +1,5 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from .models import Genere, Book, Order, OrderItem
@@ -53,6 +54,8 @@ def cart(req):
         cart = req.session.get('cart', {})
         cart_items = []
         from decimal import Decimal
+        from django.utils import timezone
+        from .models import Coupon
         total_price = Decimal('0.00')
 
         for slug, quantity in cart.items():
@@ -68,9 +71,23 @@ def cart(req):
         if not cart_items:
             return render(req, "cart.html", {"cart_items": [], "order": None})
 
+        # Fetch and validate coupon from session
+        coupon = None
+        coupon_code = req.session.get('coupon_code')
+        if coupon_code:
+            now = timezone.now()
+            coupon = Coupon.objects.filter(
+                code=coupon_code,
+                active=True,
+                valid_from__lte=now,
+                valid_to__gte=now
+            ).first()
+
         class MockOrder:
-            def __init__(self, total):
+            def __init__(self, total, coupon=None):
                 self.total = total
+                self.coupon = coupon
+                self.coupon_id = coupon.id if coupon else None
 
             def get_total_price(self):
                 return round(self.total, 1)
@@ -84,16 +101,48 @@ def cart(req):
                 return round(self.total * Decimal('0.18'), 0)
 
             def get_discount_amount(self):
+                if self.coupon:
+                    return self.coupon.discount_amount
                 return Decimal('0.00')
 
             def get_total_payable_price(self):
-                raw = self.total + self.get_shipping_charge() + self.get_tax_price()
+                raw = self.total + self.get_shipping_charge() + self.get_tax_price() - self.get_discount_amount()
                 return max(raw, Decimal('0.00'))
 
-        order = MockOrder(total_price)
+        order = MockOrder(total_price, coupon)
         return render(req, "cart.html", {"cart_items": cart_items, "order": order})
 
     cart_items = OrderItem.objects.select_related('book__author', 'book__genere').filter(order__user=req.user, order__payment=None)
     order = Order.objects.select_related('coupon').filter(user=req.user, payment=None).first()
 
     return render(req, "cart.html", {"cart_items": cart_items, "order": order})   
+
+@login_required
+def profile_view(req):
+    if req.method == "POST":
+        first_name = req.POST.get("first_name", "").strip()
+        last_name = req.POST.get("last_name", "").strip()
+        email = req.POST.get("email", "").strip()
+
+        if not email:
+            messages.error(req, "Email is required.")
+        else:
+            req.user.first_name = first_name
+            req.user.last_name = last_name
+            req.user.email = email
+            req.user.save()
+            messages.success(req, "Profile details updated successfully.")
+            return redirect("profile")
+
+    orders = Order.objects.select_related('payment').filter(user=req.user, payment__isnull=False).order_by('-order_date')
+    return render(req, "profile.html", {"orders": orders})
+
+@login_required
+def user_order_detail(req, id):
+    order = get_object_or_404(
+        Order.objects.select_related('user', 'payment', 'address', 'coupon').prefetch_related('order_items__book__author'),
+        id=id,
+        user=req.user,
+        payment__isnull=False
+    )
+    return render(req, "user_order_detail.html", {"order": order})
