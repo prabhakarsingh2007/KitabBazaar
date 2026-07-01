@@ -164,28 +164,46 @@ def addAddress(req):
 
 def applyCoupon(req):
     if req.method == "POST":
-        code = req.POST.get("code")
-        now = timezone.now()
-        coupon = Coupon.objects.filter(
-            code=code,
-            active=True,
-            valid_from__lte=now,
-            valid_to__gte=now
-        ).first()
-        if coupon:
-            if not req.user.is_authenticated:
-                req.session["coupon_code"] = code
-                messages.success(req, "Coupon applied successfully!")
+        code = req.POST.get("code", "").strip()
+        if not code:
+            messages.error(req, "Please enter a coupon code.")
+            return redirect("cart")
+
+        coupon = Coupon.objects.filter(code__iexact=code).first()
+        if not coupon:
+            messages.error(req, "Invalid Coupon")
+            return redirect("cart")
+
+        from decimal import Decimal
+        if not req.user.is_authenticated:
+            # Calculate guest cart subtotal
+            cart_session = req.session.get('cart', {})
+            subtotal = Decimal('0.00')
+            for slug, quantity in cart_session.items():
+                book = Book.objects.filter(slug=slug).first()
+                if book:
+                    price = book.discount_price if book.discount_price else book.price
+                    subtotal += price * quantity
+            
+            is_valid, message = coupon.is_valid_for_cart(None, subtotal)
+            if is_valid:
+                req.session["coupon_code"] = coupon.code
+                messages.success(req, "Coupon Applied Successfully")
             else:
-                order = Order.objects.filter(user=req.user, payment=None).first()
-                if order:
+                messages.error(req, message)
+        else:
+            order = Order.objects.filter(user=req.user, payment=None).first()
+            if order:
+                subtotal = order.get_total_price()
+                is_valid, message = coupon.is_valid_for_cart(req.user, subtotal)
+                if is_valid:
                     order.coupon = coupon
                     order.save()
-                    messages.success(req, "Coupon applied successfully!")
+                    messages.success(req, "Coupon Applied Successfully")
                 else:
-                    messages.error(req, "No active order found.")
-        else:
-            messages.error(req, "Invalid or expired coupon code.")
+                    messages.error(req, message)
+            else:
+                messages.error(req, "No active order found.")
     return redirect("cart")
 
 

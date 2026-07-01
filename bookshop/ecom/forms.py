@@ -30,14 +30,22 @@ class LoginForm(forms.Form):
 class CouponForm(ModelForm):
     class Meta:
         model = Coupon
-        # valid_from and valid_to fields should be in the form of date time picker. 
-        # so we will use widgets to make it a date time picker
+        fields = [
+            "code", "discount_type", "discount_amount", "min_order_amount",
+            "max_discount", "usage_limit", "per_user_limit",
+            "first_order_only", "free_shipping", "valid_from", "valid_to", "active"
+        ]
         widgets = {
             "code": forms.TextInput(attrs={"placeholder": "Enter Coupon Code"}),
+            "discount_type": forms.Select(attrs={"class": "form-select"}),
+            "discount_amount": forms.NumberInput(attrs={"placeholder": "e.g., 50.00 or 15.00"}),
+            "min_order_amount": forms.NumberInput(attrs={"placeholder": "e.g., 500.00"}),
+            "max_discount": forms.NumberInput(attrs={"placeholder": "e.g., 200.00 (Optional)"}),
+            "usage_limit": forms.NumberInput(attrs={"placeholder": "e.g., 100 (Optional)"}),
+            "per_user_limit": forms.NumberInput(attrs={"placeholder": "e.g., 1 (Optional)"}),
             "valid_from": forms.DateTimeInput(attrs={"type": "datetime-local"}),
             "valid_to": forms.DateTimeInput(attrs={"type": "datetime-local"}),
         }
-        fields = ["code", "discount_amount", "valid_from", "valid_to","active"]
 
 class RegisterForm(ModelForm):
     confirm_password = forms.CharField(

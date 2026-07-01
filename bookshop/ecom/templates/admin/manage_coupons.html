@@ -20,7 +20,9 @@
                     <tr class="bg-slate-50/70 border-b border-slate-200 text-slate-600 font-semibold text-xs uppercase tracking-wider">
                         <th class="p-4">ID</th>
                         <th class="p-4">Coupon Code</th>
-                        <th class="p-4">Discount Amount</th>
+                        <th class="p-4">Discount</th>
+                        <th class="p-4">Rules & Limits</th>
+                        <th class="p-4">Usage Stats</th>
                         <th class="p-4">Validity Period</th>
                         <th class="p-4 text-center">Status</th>
                         <th class="p-4 text-right">Actions</th>
@@ -33,7 +35,34 @@
                         <td class="p-4 font-mono font-bold text-indigo-600 tracking-wide text-base">
                             {{ coupon.code }}
                         </td>
-                        <td class="p-4 font-bold text-slate-900">₹{{ coupon.discount_amount }}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-slate-900">
+                                {% if coupon.discount_type == 'PERCENTAGE' %}
+                                    {{ coupon.discount_amount }}% Off
+                                {% else %}
+                                    ₹{{ coupon.discount_amount }} Off
+                                {% endif %}
+                            </div>
+                            <div class="text-xs text-slate-500 mt-0.5">
+                                {% if coupon.discount_type == 'PERCENTAGE' and coupon.max_discount %}
+                                    Max Cap: ₹{{ coupon.max_discount }}
+                                {% endif %}
+                                {% if coupon.free_shipping %}
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xxs font-semibold bg-emerald-50 text-emerald-700 mt-1">Free Shipping</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="p-4 text-xs space-y-1 text-slate-600">
+                            <div>Min Order: <span class="font-semibold text-slate-800">₹{{ coupon.min_order_amount }}</span></div>
+                            <div>Per User: <span class="font-semibold text-slate-800">{{ coupon.per_user_limit|default:"Unlimited" }}</span></div>
+                            {% if coupon.first_order_only %}
+                                <div class="text-indigo-600 font-medium">First Order Only</div>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-xs text-slate-700">
+                            <span class="font-bold text-slate-900">{{ coupon.times_used_count }}</span> / 
+                            <span class="font-medium text-slate-500">{{ coupon.usage_limit|default:"∞" }}</span> uses
+                        </td>
                         <td class="p-4">
                             <div class="text-xs text-slate-600">From: <span class="font-medium text-slate-800">{{ coupon.valid_from|date:"M d, Y" }}</span></div>
                             <div class="text-xs text-slate-400 mt-0.5">To: <span class="font-medium text-slate-800">{{ coupon.valid_to|date:"M d, Y" }}</span></div>
@@ -67,7 +96,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="p-8 text-center text-slate-500">
+                        <td colspan="8" class="p-8 text-center text-slate-500">
                             No coupons found in database.
                         </td>
                     </tr>

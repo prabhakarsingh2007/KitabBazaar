@@ -58,14 +58,75 @@ class Address(models.Model):
     
 
 class Coupon(models.Model):
+    DISCOUNT_TYPE_CHOICES = (
+        ('FLAT', 'Flat Amount'),
+        ('PERCENTAGE', 'Percentage'),
+    )
+
     code = models.CharField(max_length=50, unique=True)
-    discount_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    discount_type = models.CharField(max_length=15, choices=DISCOUNT_TYPE_CHOICES, default='FLAT')
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Flat amount or percentage value")
+    min_order_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), help_text="Minimum order subtotal to apply this coupon")
+    max_discount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Maximum discount amount allowed for percentage type")
+    usage_limit = models.PositiveIntegerField(null=True, blank=True, help_text="Total number of times this coupon can be used globally")
+    per_user_limit = models.PositiveIntegerField(default=1, null=True, blank=True, help_text="Number of times a single user can use this coupon")
+    first_order_only = models.BooleanField(default=False, help_text="Check if coupon is only valid for user's first completed order")
+    free_shipping = models.BooleanField(default=False, help_text="Check if this coupon provides free shipping")
     valid_from = models.DateTimeField()
     valid_to = models.DateTimeField()
     active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.code
+
+    def is_valid_for_cart(self, user, cart_subtotal):
+        from django.utils import timezone
+        now = timezone.now()
+
+        if not self.active:
+            return False, "Coupon is inactive."
+
+        if now < self.valid_from:
+            return False, "Coupon is not active yet."
+
+        if now > self.valid_to:
+            return False, "Coupon has expired."
+
+        if cart_subtotal < self.min_order_amount:
+            return False, f"Minimum order amount of Rs. {self.min_order_amount} is required to apply this coupon."
+
+        # Global usage limit check
+        if self.usage_limit is not None:
+            global_uses = self.order_set.filter(payment__isnull=False).count()
+            if global_uses >= self.usage_limit:
+                return False, "Coupon global usage limit has been exceeded."
+
+        # User-specific limits check
+        if user and user.is_authenticated:
+            if self.per_user_limit is not None:
+                user_uses = self.order_set.filter(user=user, payment__isnull=False).count()
+                if user_uses >= self.per_user_limit:
+                    return False, f"You have already used this coupon maximum number of times ({self.per_user_limit})."
+
+            if self.first_order_only:
+                has_previous_orders = user.order_set.filter(payment__isnull=False).exists()
+                if has_previous_orders:
+                    return False, "This coupon is only valid for your first order."
+        else:
+            # If user is guest
+            if self.first_order_only or (self.per_user_limit is not None):
+                return False, "Please log in to apply this coupon."
+
+        return True, "Coupon applied successfully!"
+
+    def calculate_discount(self, subtotal):
+        if self.discount_type == 'PERCENTAGE':
+            discount = subtotal * (self.discount_amount / Decimal('100.00'))
+            if self.max_discount is not None:
+                discount = min(discount, self.max_discount)
+            return round(discount, 2)
+        else: # FLAT
+            return min(self.discount_amount, subtotal)
     
 class Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -111,6 +172,11 @@ class Order(models.Model):
     
 
     def get_shipping_charge(self):
+        if self.coupon and self.coupon.free_shipping:
+            # Only apply free shipping if the coupon is currently valid for the order
+            is_valid, _ = self.coupon.is_valid_for_cart(self.user, self.get_total_price())
+            if is_valid:
+                return Decimal('0.00')
         if self.get_total_price() < Decimal('500.00'):
             return Decimal('45.00')
         else:
@@ -121,9 +187,11 @@ class Order(models.Model):
     
     def get_discount_amount(self):
         if self.coupon:
-            return self.coupon.discount_amount
-        else:
-            return Decimal('0.00')
+            is_valid, _ = self.coupon.is_valid_for_cart(self.user, self.get_total_price())
+            if not is_valid:
+                return Decimal('0.00')
+            return self.coupon.calculate_discount(self.get_total_price())
+        return Decimal('0.00')
 
     def get_total_payable_price(self):
         raw_payable = self.get_total_price() + self.get_shipping_charge() + self.get_tax_price() - self.get_discount_amount()

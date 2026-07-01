@@ -24,4 +24,23 @@ admin.site.register(Order)
 admin.site.register(OrderItem)
 admin.site.register(Address)
 admin.site.register(Payment)
-admin.site.register(Coupon)
+
+class CouponAdmin(admin.ModelAdmin):
+    list_display = (
+        "code", "discount_type", "discount_amount", "min_order_amount",
+        "usage_limit", "times_used", "total_discount_given", "active"
+    )
+    list_filter = ("discount_type", "active", "valid_from", "valid_to")
+    search_fields = ("code",)
+
+    def times_used(self, obj):
+        return obj.order_set.filter(payment__isnull=False).count()
+    times_used.short_description = "Times Used"
+
+    def total_discount_given(self, obj):
+        orders = obj.order_set.filter(payment__isnull=False)
+        total_discount = sum(order.get_discount_amount() for order in orders)
+        return f"₹{total_discount:.2f}"
+    total_discount_given.short_description = "Total Discount Given"
+
+admin.site.register(Coupon, CouponAdmin)

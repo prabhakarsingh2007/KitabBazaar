@@ -76,14 +76,16 @@ def cart(req):
         # Fetch and validate coupon from session
         coupon = None
         coupon_code = req.session.get('coupon_code')
+        coupon_error = None
         if coupon_code:
             now = timezone.now()
-            coupon = Coupon.objects.filter(
-                code=coupon_code,
-                active=True,
-                valid_from__lte=now,
-                valid_to__gte=now
-            ).first()
+            coupon = Coupon.objects.filter(code=coupon_code).first()
+            if coupon:
+                is_valid, message = coupon.is_valid_for_cart(None, total_price)
+                if not is_valid:
+                    coupon_error = message
+            else:
+                coupon_error = "Invalid Coupon code."
 
         class MockOrder:
             def __init__(self, total, coupon=None):
@@ -95,6 +97,10 @@ def cart(req):
                 return round(self.total, 1)
 
             def get_shipping_charge(self):
+                if self.coupon and self.coupon.free_shipping:
+                    is_valid, _ = self.coupon.is_valid_for_cart(None, self.total)
+                    if is_valid:
+                        return Decimal('0.00')
                 if self.total < Decimal('500.00'):
                     return Decimal('45.00')
                 return Decimal('0.00')
@@ -104,7 +110,10 @@ def cart(req):
 
             def get_discount_amount(self):
                 if self.coupon:
-                    return self.coupon.discount_amount
+                    is_valid, _ = self.coupon.is_valid_for_cart(None, self.total)
+                    if not is_valid:
+                        return Decimal('0.00')
+                    return self.coupon.calculate_discount(self.total)
                 return Decimal('0.00')
 
             def get_total_payable_price(self):
@@ -112,12 +121,17 @@ def cart(req):
                 return max(raw, Decimal('0.00'))
 
         order = MockOrder(total_price, coupon)
-        return render(req, "cart.html", {"cart_items": cart_items, "order": order})
+        return render(req, "cart.html", {"cart_items": cart_items, "order": order, "coupon_error": coupon_error})
 
     cart_items = OrderItem.objects.select_related('book__author', 'book__genere').filter(order__user=req.user, order__payment=None)
     order = Order.objects.select_related('coupon').filter(user=req.user, payment=None).first()
+    coupon_error = None
+    if order and order.coupon:
+        is_valid, message = order.coupon.is_valid_for_cart(req.user, order.get_total_price())
+        if not is_valid:
+            coupon_error = message
 
-    return render(req, "cart.html", {"cart_items": cart_items, "order": order})   
+    return render(req, "cart.html", {"cart_items": cart_items, "order": order, "coupon_error": coupon_error})   
 
 @login_required
 def profile_view(req):
