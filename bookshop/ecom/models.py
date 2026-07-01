@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from decimal import Decimal
+# pyrefly: ignore [missing-import]
 from .validators import validate_image_extension
 
 # Create your models here.

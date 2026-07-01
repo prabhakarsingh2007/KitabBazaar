@@ -1,12 +1,14 @@
-
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import HttpResponseForbidden
-from ecom.models import Genere, Author, Book, Coupon, Address, Order
+# pyrefly: ignore [missing-import]
+from ecom.models import Genere, Author, Book, Coupon, Address, Order, OrderItem
+# pyrefly: ignore [missing-import]
 from ecom.forms import GenereForm, BookForm, AuthorForm, CouponForm, LoginForm, RegisterForm
 from functools import wraps
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+# pyrefly: ignore [missing-import]
 from ecom.utils import generate_unique_slug
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError

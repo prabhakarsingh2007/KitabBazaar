@@ -1,10 +1,10 @@
 from django import forms
 from django.forms import ModelForm
-from .models import Genere, Author, Book, Coupon, Address
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-
+# pyrefly: ignore [missing-import]
+from .models import Genere, Author, Book, Coupon, Address
 
 class AuthorForm(ModelForm):
     class Meta:

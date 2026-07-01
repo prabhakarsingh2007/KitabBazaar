@@ -1,4 +1,5 @@
 from django.core.cache import cache
+# pyrefly: ignore [missing-import]
 from .models import Genere
 
 def generes_processor(request):

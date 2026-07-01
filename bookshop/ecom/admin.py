@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import *
-
+# pyrefly: ignore [missing-import]
+from .models import Genere, Author, Book, Coupon, Address, Order, OrderItem, Payment
 
 
 class GenereAdmin(admin.ModelAdmin):

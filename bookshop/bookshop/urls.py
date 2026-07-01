@@ -4,7 +4,9 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 
+# pyrefly: ignore [missing-import]
 from ecom.views import homepage, filter, book_view, cart, profile_view, user_order_detail
+# pyrefly: ignore [missing-import]
 from ecom.authview import (
     dashboard, manageGenere, editGenere, deleteGenere,
     manageCoupons, editCoupon, deleteCoupon,
@@ -13,6 +15,7 @@ from ecom.authview import (
     login, register, logout, manageOrders, orderDetail,
     manageStocks, manageUsers
 )
+# pyrefly: ignore [missing-import]
 from ecom.checkoutView import (
     addToCart, removeFromCart, minusFromCart,
     checkout, applyCoupon, removeCoupon, addAddress, success
