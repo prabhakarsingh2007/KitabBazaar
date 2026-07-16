@@ -16,9 +16,6 @@ def addToCart(req, slug):
         return redirect("cart")
 
     if not req.user.is_authenticated:
-        if req.GET.get("buy_now") == "true" or req.POST.get("buy_now") == "true":
-            return redirect(f"/auth/login/?next=/checkout/add-to-cart/{slug}/?buy_now=true")
-        
         cart = req.session.get("cart", {})
         quantity = cart.get(slug, 0)
         if quantity + 1 > book.stock:
@@ -42,8 +39,6 @@ def addToCart(req, slug):
     else:
         messages.success(req, f"'{book.title}' added to cart.")
         
-    if req.GET.get("buy_now") == "true":
-        return redirect("checkout")
     return redirect("cart")
 
 def removeFromCart(req, slug):

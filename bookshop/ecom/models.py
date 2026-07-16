@@ -173,6 +173,8 @@ class Order(models.Model):
 
     def get_shipping_charge(self):
         if self.coupon and self.coupon.free_shipping:
+            if self.payment_id is not None:
+                return Decimal('0.00')
             # Only apply free shipping if the coupon is currently valid for the order
             is_valid, _ = self.coupon.is_valid_for_cart(self.user, self.get_total_price())
             if is_valid:
@@ -187,6 +189,8 @@ class Order(models.Model):
     
     def get_discount_amount(self):
         if self.coupon:
+            if self.payment_id is not None:
+                return self.coupon.calculate_discount(self.get_total_price())
             is_valid, _ = self.coupon.is_valid_for_cart(self.user, self.get_total_price())
             if not is_valid:
                 return Decimal('0.00')
