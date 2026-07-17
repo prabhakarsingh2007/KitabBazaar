@@ -3,6 +3,10 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db import transaction
 from django.contrib import messages
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponseBadRequest
+import razorpay
 # pyrefly: ignore [missing-import]
 from .forms import AddressForm
 # pyrefly: ignore [missing-import]
@@ -121,11 +125,25 @@ def checkout(req):
                 # Finalize total price on the order
                 order.total_price = order.get_total_payable_price()
 
+                if payment_method != "cod":
+                    payment = Payment.objects.create(
+                        user=req.user,
+                        amount=order.total_price,
+                        payment_method=payment_method,
+                        mode=f"Razorpay - {payment_method.upper()}",
+                        transaction_id="",
+                    )
+                    order.payment = payment
+                    order.address = address
+                    order.status = 'PENDING'
+                    order.save()
+                    return redirect("pay_order", order_id=order.id)
+
                 payment = Payment.objects.create(
                     user=req.user,
                     amount=order.total_price,
                     payment_method=payment_method,
-                    mode=(payment_method if payment_method != "cod" else "Cash on Delivery"),
+                    mode="Cash on Delivery",
                     transaction_id="",
                 )
 
@@ -219,3 +237,137 @@ def removeCoupon(req):
 @login_required
 def success(req):
     return render(req, "order_success.html")
+
+
+@login_required
+def pay_order(req, order_id):
+    order = get_object_or_404(Order, id=order_id, user=req.user, payment__isnull=False)
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    amount_in_paise = int(order.total_price * 100)
+    payment = order.payment
+    razorpay_order_id = payment.transaction_id
+    
+    if not razorpay_order_id.startswith("order_"):
+        try:
+            razorpay_order = client.order.create({
+                "amount": amount_in_paise,
+                "currency": "INR",
+                "receipt": f"order_rcpt_{order.id}",
+                "payment_capture": 1
+            })
+            razorpay_order_id = razorpay_order['id']
+            payment.transaction_id = razorpay_order_id
+            payment.save()
+        except Exception as e:
+            messages.error(req, f"Razorpay order generation failed: {str(e)}")
+            return redirect("checkout")
+
+    context = {
+        "order": order,
+        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+        "razorpay_amount": amount_in_paise,
+        "razorpay_order_id": razorpay_order_id,
+        "user_email": req.user.email,
+        "user_name": req.user.get_full_name() or req.user.username,
+        "contact_number": order.address.contact if order.address else ""
+    }
+    return render(req, "razorpay_payment.html", context)
+
+
+@csrf_exempt
+@login_required
+def verify_payment(req):
+    if req.method == "POST":
+        razorpay_payment_id = req.POST.get("razorpay_payment_id")
+        razorpay_order_id = req.POST.get("razorpay_order_id")
+        razorpay_signature = req.POST.get("razorpay_signature")
+        order_id = req.GET.get("order_id") or req.POST.get("order_id")
+    else:
+        razorpay_payment_id = req.GET.get("razorpay_payment_id")
+        razorpay_order_id = req.GET.get("razorpay_order_id")
+        razorpay_signature = req.GET.get("razorpay_signature")
+        order_id = req.GET.get("order_id")
+
+    if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature, order_id]):
+        messages.error(req, "Payment verification parameters missing.")
+        return redirect("checkout")
+
+    order = get_object_or_404(Order, id=order_id, user=req.user)
+    payment = order.payment
+
+    if not payment:
+        messages.error(req, "No payment record found for this order.")
+        return redirect("checkout")
+
+    if order.status == 'PROCESSING':
+        messages.success(req, "Payment verified successfully!")
+        return redirect("success")
+
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    
+    params_dict = {
+        'razorpay_order_id': razorpay_order_id,
+        'razorpay_payment_id': razorpay_payment_id,
+        'razorpay_signature': razorpay_signature
+    }
+    
+    try:
+        client.utility.verify_payment_signature(params_dict)
+        
+        payment.transaction_id = razorpay_payment_id
+        payment.save()
+
+        order.status = 'PROCESSING'
+        order.save()
+
+        messages.success(req, "Payment verified and order placed successfully!")
+        return redirect("success")
+    except Exception as e:
+        messages.error(req, f"Payment verification failed: {str(e)}")
+        return redirect(f"/checkout/payment-failed/{order.id}/?error_description=" + str(e))
+
+
+@login_required
+def cancel_payment(req, order_id):
+    order = get_object_or_404(Order, id=order_id, user=req.user)
+    
+    if order.status == 'PENDING':
+        with transaction.atomic():
+            for item in order.order_items.all():
+                book_ref = Book.objects.select_for_update().get(id=item.book.id)
+                book_ref.stock += item.quantity
+                book_ref.save()
+            
+            payment = order.payment
+            order.payment = None
+            order.status = 'CANCELLED'
+            order.save()
+            if payment:
+                payment.delete()
+
+        messages.warning(req, "Payment was cancelled. You can review your cart or try again.")
+    return redirect("cart")
+
+
+@login_required
+def payment_failed(req, order_id):
+    order = get_object_or_404(Order, id=order_id, user=req.user)
+    error_description = req.GET.get("error_description", "Payment transaction failed.")
+    
+    if order.status == 'PENDING':
+        with transaction.atomic():
+            for item in order.order_items.all():
+                book_ref = Book.objects.select_for_update().get(id=item.book.id)
+                book_ref.stock += item.quantity
+                book_ref.save()
+            
+            payment = order.payment
+            order.payment = None
+            order.status = 'CANCELLED'
+            order.save()
+            if payment:
+                payment.delete()
+
+        messages.error(req, f"Payment failed: {error_description}. Please try again.")
+    return redirect("checkout")

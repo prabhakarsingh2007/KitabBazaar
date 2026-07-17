@@ -18,7 +18,8 @@ from ecom.authview import (
 # pyrefly: ignore [missing-import]
 from ecom.checkoutView import (
     addToCart, removeFromCart, minusFromCart,
-    checkout, applyCoupon, removeCoupon, addAddress, success
+    checkout, applyCoupon, removeCoupon, addAddress, success,
+    pay_order, verify_payment, cancel_payment, payment_failed
 )
 
 urlpatterns = [
@@ -66,6 +67,10 @@ urlpatterns = [
     path("checkout/remove-from-cart/<slug:slug>/", removeFromCart, name="remove_from_cart"),
     path("checkout/minus-from-cart/<slug:slug>/", minusFromCart, name="minus_from_cart"),
     path("checkout/", checkout, name="checkout"),
+    path("checkout/pay/<int:order_id>/", pay_order, name="pay_order"),
+    path("checkout/verify-payment/", verify_payment, name="verify_payment"),
+    path("checkout/cancel-payment/<int:order_id>/", cancel_payment, name="cancel_payment"),
+    path("checkout/payment-failed/<int:order_id>/", payment_failed, name="payment_failed"),
     path("checkout/apply-coupon/", applyCoupon, name="apply_coupon"),
     path("checkout/remove-coupon/", removeCoupon, name="remove_coupon"),
     path("checkout/add-address/", addAddress, name="add_address"),
