@@ -74,4 +74,97 @@
     </div>
 </form>
 
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.querySelector('form[action="{% url "checkout" %}"]');
+        if (!form) return;
+
+        form.addEventListener("submit", function(e) {
+            const paymentMethodInput = form.querySelector('input[name="payment_method"]:checked');
+            const paymentMethod = paymentMethodInput ? paymentMethodInput.value : '';
+
+            // Only intercept if payment method is not Cash on Delivery (COD)
+            if (paymentMethod !== "cod") {
+                e.preventDefault();
+
+                // Get form data
+                const formData = new FormData(form);
+                formData.append("ajax", "true");
+
+                // Set loading state on submit button
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn ? submitBtn.textContent : 'Place Order';
+                if (submitBtn) {
+                    submitBtn.textContent = 'Processing Payment...';
+                    submitBtn.disabled = true;
+                }
+
+                // Send AJAX request to checkout
+                fetch("{% url 'checkout' %}", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'Razorpay order creation failed.');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.status === "success") {
+                        // Open Razorpay payment modal
+                        var options = {
+                            "key": data.razorpay_key_id,
+                            "amount": data.razorpay_amount,
+                            "currency": "INR",
+                            "name": "KitabBazaar",
+                            "description": "Secure Payment for Order #" + data.order_id,
+                            "order_id": data.razorpay_order_id,
+                            "callback_url": window.location.origin + "{% url 'verify_payment' %}?order_id=" + data.order_id,
+                            "redirect": true,
+                            "prefill": {
+                                "name": data.user_name,
+                                "email": data.user_email,
+                                "contact": data.contact_number
+                            },
+                            "theme": {
+                                "color": "#6d28d9"
+                            },
+                            "modal": {
+                                "ondismiss": function() {
+                                    window.location.href = `/checkout/cancel-payment/${data.order_id}/`;
+                                }
+                            }
+                        };
+                        var rzp = new Razorpay(options);
+                        rzp.on('payment.failed', function (response){
+                            window.location.href = `/checkout/payment-failed/${data.order_id}/?error_description=` + encodeURIComponent(response.error.description);
+                        });
+                        rzp.open();
+                    } else {
+                        throw new Error(data.message || 'Unexpected payment error.');
+                    }
+                })
+                .catch(error => {
+                    // Reset button state and show error toast
+                    if (submitBtn) {
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+                    if (window.showToast) {
+                        window.showToast(error.message || 'An error occurred during payment setup.', 'error');
+                    } else {
+                        alert(error.message || 'An error occurred during payment setup.');
+                    }
+                });
+            }
+        });
+    });
+</script>
 {% endblock %}

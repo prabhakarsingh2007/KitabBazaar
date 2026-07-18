@@ -5,7 +5,7 @@ from django.db import transaction
 from django.contrib import messages
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, JsonResponse
 import razorpay
 # pyrefly: ignore [missing-import]
 from .forms import AddressForm
@@ -104,8 +104,11 @@ def checkout(req):
     if req.method == "POST":
         address_id = req.POST.get("address")
         payment_method = req.POST.get("payment_method")
+        is_ajax = req.POST.get("ajax") == "true" or req.headers.get('x-requested-with') == 'XMLHttpRequest'
 
         if not address_id or not payment_method:
+            if is_ajax:
+                return JsonResponse({"status": "error", "message": "Please select an address and payment method."}, status=400)
             messages.error(req, "Please select an address and payment method.")
             return redirect("checkout")
 
@@ -137,6 +140,32 @@ def checkout(req):
                     order.address = address
                     order.status = 'PENDING'
                     order.save()
+
+                    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+                    amount_in_paise = int(order.total_price * 100)
+                    try:
+                        razorpay_order = client.order.create({
+                            "amount": amount_in_paise,
+                            "currency": "INR",
+                            "receipt": f"order_rcpt_{order.id}",
+                            "payment_capture": 1
+                        })
+                        payment.transaction_id = razorpay_order['id']
+                        payment.save()
+                    except Exception as e:
+                        raise ValueError(f"Razorpay order generation failed: {str(e)}")
+
+                    if is_ajax:
+                        return JsonResponse({
+                            "status": "success",
+                            "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+                            "razorpay_amount": amount_in_paise,
+                            "razorpay_order_id": razorpay_order['id'],
+                            "order_id": order.id,
+                            "user_email": req.user.email,
+                            "user_name": req.user.get_full_name() or req.user.username,
+                            "contact_number": order.address.contact if order.address else ""
+                        })
                     return redirect("pay_order", order_id=order.id)
 
                 payment = Payment.objects.create(
@@ -151,9 +180,13 @@ def checkout(req):
                 order.address = address
                 order.save()
             
+            if is_ajax:
+                return JsonResponse({"status": "success", "redirect_url": "/checkout/success/"})
             messages.success(req, "Your order has been placed successfully!")
             return redirect("success")
         except Exception as e:
+            if is_ajax:
+                return JsonResponse({"status": "error", "message": str(e)}, status=400)
             messages.error(req, f"An error occurred while placing your order: {str(e)}")
             return redirect("checkout")
           
