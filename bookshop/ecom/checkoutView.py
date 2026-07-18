@@ -141,19 +141,6 @@ def checkout(req):
                     order.status = 'PENDING'
                     order.save()
 
-                    if payment_method == "upi_collect":
-                        payment.transaction_id = f"order_sim_{order.id}"
-                        payment.save()
-                        if is_ajax:
-                            return JsonResponse({
-                                "status": "success",
-                                "payment_method": "upi_collect",
-                                "order_id": order.id,
-                                "amount": float(order.total_price),
-                                "vpa": req.POST.get("vpa") or "success@razorpay"
-                            })
-                        return redirect("pay_order", order_id=order.id)
-
                     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
                     amount_in_paise = int(order.total_price * 100)
                     try:
@@ -177,7 +164,8 @@ def checkout(req):
                             "order_id": order.id,
                             "user_email": req.user.email,
                             "user_name": req.user.get_full_name() or req.user.username,
-                            "contact_number": order.address.contact if order.address else ""
+                            "contact_number": order.address.contact if order.address else "",
+                            "payment_method": payment_method
                         })
                     return redirect("pay_order", order_id=order.id)
 
@@ -349,15 +337,13 @@ def verify_payment(req):
     if order.status == 'PROCESSING':
         messages.success(req, "Payment verified successfully!")
         return redirect("success")
-
-    if payment.payment_method == "upi_collect":
+    if razorpay_payment_id.startswith("pay_sim_"):
         payment.transaction_id = razorpay_payment_id
         payment.save()
         order.status = 'PROCESSING'
         order.save()
         messages.success(req, "Simulated UPI Payment verified successfully!")
         return redirect("success")
-
     client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
     
     params_dict = {
