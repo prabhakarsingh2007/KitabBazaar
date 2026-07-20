@@ -1,8 +1,8 @@
-
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 
 # pyrefly: ignore [missing-import]
 from ecom.views import homepage, filter, book_view, cart, profile_view, user_order_detail
@@ -60,8 +60,6 @@ urlpatterns = [
     path("auth/register/", register, name="register"),
     path("auth/logout/", logout, name="logout"),
 
-
-
     # checkout pages
     path("checkout/add-to-cart/<slug:slug>/", addToCart, name="add_to_cart"),
     path("checkout/remove-from-cart/<slug:slug>/", removeFromCart, name="remove_from_cart"),
@@ -76,6 +74,6 @@ urlpatterns = [
     path("checkout/add-address/", addAddress, name="add_address"),
     path("checkout/success/", success, name="success"),
 
-
-    
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Media files fallback serving for production
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]
