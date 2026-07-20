@@ -46,8 +46,28 @@
                         <!-- Cash on Delivery -->
                         <label class="flex items-center gap-3"><input type="radio" name="payment_method" value="cod" checked> <span>Cash on Delivery</span></label>
                         
-                        <!-- UPI (Razorpay) -->
-                        <label class="flex items-center gap-3"><input type="radio" name="payment_method" value="upi"> <span>UPI (Razorpay)</span></label>
+                        <!-- UPI Group (Razorpay) -->
+                        <div>
+                            <label class="flex items-center gap-3"><input type="radio" name="payment_method_group" id="upi_group_radio"> <span>UPI (Razorpay)</span></label>
+                            
+                            <!-- UPI Sub-options panel -->
+                            <div id="upi-sub-options" class="hidden pl-6 mt-1 space-y-2 border-l-2 border-purple-100 ml-2 py-1">
+                                <label class="flex items-center gap-3 text-sm text-slate-600">
+                                    <input type="radio" name="payment_method" value="upi" id="upi_qr_radio"> 
+                                    <span>Option 1: Scan QR Code / Apps</span>
+                                </label>
+                                <label class="flex items-center gap-3 text-sm text-slate-600">
+                                    <input type="radio" name="payment_method" value="upi_collect" id="upi_num_radio"> 
+                                    <span>Option 2: Enter UPI ID / Mobile Number</span>
+                                </label>
+                                
+                                <!-- Nested VPA Input field -->
+                                <div id="vpa-container" class="hidden pl-6 mt-1">
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Enter UPI ID or Mobile Number</label>
+                                    <input type="text" name="vpa" id="vpa_input" placeholder="e.g. 9142656092@upi or success@razorpay" class="w-full max-w-sm px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -74,4 +94,66 @@
             </aside>
     </div>
 </form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.querySelector('form[action="{% url "checkout" %}"]');
+        if (!form) return;
+
+        const mainRadios = form.querySelectorAll('input[name="payment_method"], input[name="payment_method_group"]');
+        const upiGroupRadio = document.getElementById("upi_group_radio");
+        const upiSubOptions = document.getElementById("upi-sub-options");
+        const upiQrRadio = document.getElementById("upi_qr_radio");
+        const upiNumRadio = document.getElementById("upi_num_radio");
+        const vpaContainer = document.getElementById("vpa-container");
+        const vpaInput = document.getElementById("vpa_input");
+
+        function handlePaymentStateChange() {
+            // Manage UPI options visibility
+            if (upiGroupRadio.checked) {
+                upiSubOptions.classList.remove("hidden");
+                // Default to QR if none selected
+                if (!upiQrRadio.checked && !upiNumRadio.checked) {
+                    upiQrRadio.checked = true;
+                }
+            } else {
+                upiSubOptions.classList.add("hidden");
+                // Clear selections if not in UPI group
+                upiQrRadio.checked = false;
+                upiNumRadio.checked = false;
+            }
+
+            // Manage VPA input visibility
+            if (upiNumRadio.checked) {
+                vpaContainer.classList.remove("hidden");
+                vpaInput.required = true;
+            } else {
+                vpaContainer.classList.add("hidden");
+                vpaInput.required = false;
+            }
+        }
+
+        mainRadios.forEach(radio => {
+            radio.addEventListener("change", handlePaymentStateChange);
+        });
+
+        // Initialize state
+        handlePaymentStateChange();
+
+        // Form submit intercept validation for simulated UPI
+        form.addEventListener("submit", function(e) {
+            const selectedMethod = form.querySelector('input[name="payment_method"]:checked');
+            if (selectedMethod && selectedMethod.value === "upi_collect") {
+                if (!vpaInput.value.trim()) {
+                    e.preventDefault();
+                    if (window.showToast) {
+                        window.showToast("Please enter a valid UPI ID or Mobile Number.", "error");
+                    } else {
+                        alert("Please enter a valid UPI ID or Mobile Number.");
+                    }
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}
